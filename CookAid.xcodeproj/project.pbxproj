@@ -54,6 +54,9 @@
 		AC8E4B932CBC368C00A7475C /* FirebaseStorage in Frameworks */ = {isa = PBXBuildFile; productRef = AC8E4B922CBC368C00A7475C /* FirebaseStorage */; };
 		AC8E4B952CBC368C00A7475C /* FirebaseStorageCombine-Community in Frameworks */ = {isa = PBXBuildFile; productRef = AC8E4B942CBC368C00A7475C /* FirebaseStorageCombine-Community */; };
 		AC8E4B972CBC48A200A7475C /* FirebaseManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC8E4B962CBC48A200A7475C /* FirebaseManager.swift */; };
+		ACB3418B2CD05A800029FC2E /* InputView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACB3418A2CD05A800029FC2E /* InputView.swift */; };
+		ACB3418D2CD09DA90029FC2E /* User.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACB3418C2CD09DA90029FC2E /* User.swift */; };
+		ACB3418F2CD0A4020029FC2E /* AuthViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACB3418E2CD0A4020029FC2E /* AuthViewModel.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -79,6 +82,9 @@
 		AC7597C42CB91D710047D091 /* logo.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = logo.png; sourceTree = "<group>"; };
 		AC8E4B5F2CBC33D700A7475C /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = "GoogleService-Info.plist"; path = "../../../../Downloads/GoogleService-Info.plist"; sourceTree = "<group>"; };
 		AC8E4B962CBC48A200A7475C /* FirebaseManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirebaseManager.swift; sourceTree = "<group>"; };
+		ACB3418A2CD05A800029FC2E /* InputView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputView.swift; sourceTree = "<group>"; };
+		ACB3418C2CD09DA90029FC2E /* User.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = User.swift; sourceTree = "<group>"; };
+		ACB3418E2CD0A4020029FC2E /* AuthViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthViewModel.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -140,6 +146,7 @@
 				AC8E4B5F2CBC33D700A7475C /* GoogleService-Info.plist */,
 				AC7597BB2CB918410047D091 /* Assets */,
 				AC7597872CB90DB40047D091 /* Models */,
+				ACB341892CD059370029FC2E /* Services */,
 				AC7597862CB90DA30047D091 /* ViewModels */,
 				AC7597832CB90D4B0047D091 /* Views */,
 				AC7597752CB90C890047D091 /* CookAidApp.swift */,
@@ -189,6 +196,7 @@
 		AC7597862CB90DA30047D091 /* ViewModels */ = {
 			isa = PBXGroup;
 			children = (
+				ACB3418E2CD0A4020029FC2E /* AuthViewModel.swift */,
 			);
 			path = ViewModels;
 			sourceTree = "<group>";
@@ -196,6 +204,7 @@
 		AC7597872CB90DB40047D091 /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				ACB3418C2CD09DA90029FC2E /* User.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -213,6 +222,7 @@
 				AC4FD6A02CBAD5830093A7DC /* BottomTabBar.swift */,
 				AC4FD6A22CBAD5AD0093A7DC /* TabBarButton.swift */,
 				AC4FD6A42CBB9CC80093A7DC /* RecipeCard.swift */,
+				ACB3418A2CD05A800029FC2E /* InputView.swift */,
 			);
 			path = Components;
 			sourceTree = "<group>";
@@ -222,7 +232,6 @@
 			children = (
 				AC7597B52CB914B00047D091 /* LoginView.swift */,
 				AC7597B72CB914C20047D091 /* SignUpView.swift */,
-				AC8E4B962CBC48A200A7475C /* FirebaseManager.swift */,
 			);
 			path = Authentication;
 			sourceTree = "<group>";
@@ -232,6 +241,14 @@
 			children = (
 			);
 			path = Assets;
+			sourceTree = "<group>";
+		};
+		ACB341892CD059370029FC2E /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				AC8E4B962CBC48A200A7475C /* FirebaseManager.swift */,
+			);
+			path = Services;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -337,6 +354,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				ACB3418F2CD0A4020029FC2E /* AuthViewModel.swift in Sources */,
 				AC75978F2CB90E700047D091 /* NewRecipeView.swift in Sources */,
 				AC75978B2CB90E220047D091 /* HomeView.swift in Sources */,
 				AC4FD6A12CBAD5830093A7DC /* BottomTabBar.swift in Sources */,
@@ -352,8 +370,10 @@
 				AC4FD6A32CBAD5AD0093A7DC /* TabBarButton.swift in Sources */,
 				AC4FD69F2CBAD41C0093A7DC /* MyRecipeView.swift in Sources */,
 				AC4FD6A92CBBA6D40093A7DC /* GroceryView.swift in Sources */,
+				ACB3418B2CD05A800029FC2E /* InputView.swift in Sources */,
 				AC7597762CB90C890047D091 /* CookAidApp.swift in Sources */,
 				AC8E4B972CBC48A200A7475C /* FirebaseManager.swift in Sources */,
+				ACB3418D2CD09DA90029FC2E /* User.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

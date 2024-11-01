@@ -5,43 +5,37 @@ struct LoginView: View {
     @State private var password: String = ""
     @State private var errorMessage: String = ""
     @State private var showingAlert: Bool = false
-
+    @EnvironmentObject var viewModel: AuthViewModel
+    
     var body: some View {
-        NavigationView {
+        NavigationStack {
             VStack {
-                Image("logo") // Ensure you have an image named "logo" in your asset catalog
+                // Logo image
+                Image("logo")
                     .resizable()
                     .scaledToFit()
                     .frame(width: 200, height: 200)
-
+                
+                // Welcome text
                 Text("Welcome Back!")
                     .font(.custom("Cochin", size: 34))
                     .fontWeight(.bold)
                     .padding()
-
-                TextField("Email", text: $email) // Email input
-                    .textFieldStyle(RoundedBorderTextFieldStyle())
-                    .padding()
-                    .background(Color.white)
-                    .cornerRadius(10)
-
-                SecureField("Password", text: $password) // Password input
-                    .textFieldStyle(RoundedBorderTextFieldStyle())
-                    .padding()
-                    .background(Color.white)
-                    .cornerRadius(10)
-
+                
+                // Input fields for email and password
+                VStack(spacing: 24) {
+                    InputView(text: $email, title: "Email", placeholder: "johndoe@example.com")
+                        .autocapitalization(.none)
+                    InputView(text: $password, title: "Password", placeholder: "Enter your password", isSecureField: true)
+                }
+                .padding(.horizontal)
+                .padding(.top, 12)
+                
+                // Sign in button
                 Button(action: {
-                    // Simulate a login action
-                    if email.isEmpty || password.isEmpty {
-                        errorMessage = "Please enter your email and password."
-                        showingAlert = true
-                    } else {
-                        // Normally, you would perform login logic here
-                        print("Login tapped with Email: \(email) and Password: \(password)")
-                    }
+                    signIn()
                 }) {
-                    Text("Login")
+                    Text("Sign in")
                         .font(.custom("Cochin", size: 18))
                         .padding()
                         .frame(maxWidth: .infinity)
@@ -53,12 +47,17 @@ struct LoginView: View {
                 .alert(isPresented: $showingAlert) {
                     Alert(title: Text("Login Error"), message: Text(errorMessage), dismissButton: .default(Text("OK")))
                 }
-
-                NavigationLink(destination: SignUpView()) {
-                    Text("Don't have an account? Sign Up")
-                        .font(.custom("Cochin", size: 16))
-                        .foregroundColor(.black)
-                        .padding()
+                
+                // Navigation to Sign Up view
+                NavigationLink(destination: SignUpView().navigationBarBackButtonHidden()) {
+                    HStack(spacing: 3) {
+                        Text("Don't have an account?")
+                        Text("Sign up")
+                            .fontWeight(.bold)
+                    }
+                    .font(.custom("Cochin", size: 16))
+                    .foregroundColor(.black)
+                    .padding()
                 }
             }
             .padding()
@@ -66,11 +65,34 @@ struct LoginView: View {
             .edgesIgnoringSafeArea(.all)
         }
     }
-}
-
-struct LoginView_Previews: PreviewProvider {
-    static var previews: some View {
-        LoginView()
+    private func signIn() {
+        // Validate input fields
+        guard !email.isEmpty, !password.isEmpty else {
+            errorMessage = "Please enter your email and password."
+            showingAlert = true
+            print("Validation failed: email or password is empty.")
+            return
+        }
+        
+        print("Attempting to sign in with email: \(email)")
+        
+        // Attempt to sign in
+        Task {
+            do {
+                try await viewModel.signIn(withEmail: email, password: password)
+                print("Sign in successful!")
+            } catch {
+                errorMessage = "Failed to sign in: \(error.localizedDescription)"
+                showingAlert = true
+                print("Sign in failed with error: \(error.localizedDescription)")
+            }
+        }
+    }
+    
+    
+    struct LoginView_Previews: PreviewProvider {
+        static var previews: some View {
+            LoginView().environmentObject(AuthViewModel()) // Provide a mock AuthViewModel for preview
+        }
     }
 }
-

@@ -8,13 +8,15 @@ struct HomeView: View {
     
     @State private var row1Items: [String] = []
     @State private var row2Items: [String] = []
+    
+    @EnvironmentObject var viewModel: AuthViewModel // Add this line to access the viewModel
 
     var body: some View {
         NavigationStack {
             ZStack {
                 ScrollView {
                     VStack {
-                        HeaderView()
+                        HeaderView() // Update HeaderView to include the viewModel
                         
                         MyPantryView(row1Items: $row1Items, row2Items: $row2Items)
                         
@@ -42,14 +44,19 @@ struct HomeView: View {
 }
 
 struct HeaderView: View {
+    @EnvironmentObject var viewModel: AuthViewModel // Add this line to access the viewModel
+
     var body: some View {
         HStack {
             VStack(alignment: .leading) {
-                Text("Hi, John Doe")
-                    .font(.custom("Cochin", size: 25))
-                    .fontWeight(.bold)
-                    .foregroundColor(.black)
-
+                // Safely unwrap user name
+                if let user = viewModel.currentUser {
+                    Text("Hi, \(user.fullname)") // Use string interpolation
+                        .font(.custom("Cochin", size: 25))
+                        .fontWeight(.bold)
+                        .foregroundColor(.black)
+                }
+                
                 Text("Turn ingredients into delicious possibilities!")
                     .font(.custom("Cochin", size: 18))
                     .foregroundColor(.gray)
@@ -79,6 +86,7 @@ struct MyPantryView: View {
 
                 HStack(spacing: 10) {
                     Button(action: {
+                        // Action for camera
                     }) {
                         HStack {
                             Image(systemName: "camera")
@@ -91,6 +99,7 @@ struct MyPantryView: View {
                     }
 
                     Button(action: {
+                        // Action for adding item
                     }) {
                         HStack {
                             Image(systemName: "plus")
@@ -212,11 +221,9 @@ struct RecipeDetailView: View {
     }
 }
 
-
 struct HomeView_Previews: PreviewProvider {
     static var previews: some View {
-        HomeView()
+        HomeView().environmentObject(AuthViewModel()) // Provide a mock AuthViewModel for preview
     }
 }
-
 

@@ -6,23 +6,23 @@ struct BottomTabBar: View {
     var body: some View {
         HStack {
             TabBarButton(imageName: "house.fill", label: "Home") {
-                HomeView() // Navigate to HomeView
+                HomeView().navigationBarBackButtonHidden() // Navigate to HomeView
             }
             Spacer()
             TabBarButton(imageName: "cart.fill", label: "Pantry") {
-                PantryView() // Navigate to PantryView
+                PantryView().navigationBarBackButtonHidden() // Navigate to PantryView
             }
             Spacer()
             TabBarButton(imageName: "sparkles", label: "Recommender") {
-                RecommenderView()
+                RecommenderView().navigationBarBackButtonHidden()
             }
             Spacer()
             TabBarButton(imageName: "clipboard.fill", label: "Grocery") {
-                GroceryView()
+                GroceryView().navigationBarBackButtonHidden()
             }
             Spacer()
             TabBarButton(imageName: "person.fill", label: "Profile") {
-                ProfileView()
+                ProfileView().navigationBarBackButtonHidden()
             }
         }
         .padding()
