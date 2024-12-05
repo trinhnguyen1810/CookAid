@@ -8,7 +8,7 @@ struct AddIngredientView: View {
     @State private var name: String = ""
     @Environment(\.presentationMode) var presentationMode
     @State private var category: String = ""
-    @State private var dateBought: Date?  // Keep as String
+    @State private var dateBought: Date? // Keep as Date?
     @State private var categories = ["Proteins", "Dairy & Dairy Alternatives", "Grains and Legumes", "Fruits & Vegetables", "Spices, Seasonings and Herbs", "Sauces and Condiments", "Cooking Essentials", "Others"]
 
     var body: some View {
@@ -18,15 +18,18 @@ struct AddIngredientView: View {
                     TextField("Ingredient Name", text: $name)
                         .font(.custom("Cochin", size: 18))
 
-                    Picker("Category", selection: $category) {
+                    Picker(selection: $category, label: Text("Category").font(.custom("Cochin", size: 18))) {
                         ForEach(categories, id: \.self) { category in
-                            Text(category)
+                            Text(category) // Default font for picker options
                         }
                     }
-                    .pickerStyle(MenuPickerStyle())
+                    .pickerStyle(MenuPickerStyle()) // Keep the menu style
 
-                    TextField("Date Bought (optional)", text: $dateBought)
-                        .font(.custom("Cochin", size: 18))
+                    DatePicker("Date Bought (optional)", selection: Binding(
+                        get: { dateBought ?? Date() }, // Provide a default date if nil
+                        set: { dateBought = $0 } // Set the date
+                    ), displayedComponents: .date)
+                    .font(.custom("Cochin", size: 18))
                 }
 
                 Button("Add Ingredient") {
@@ -44,8 +47,7 @@ struct AddIngredientView: View {
     }
 
     private func addIngredient() {
-        // Set dateBought to nil if the input is empty
-        let newIngredient = Ingredient(id: UUID().uuidString, name: name, dateBought: dateBought.isEmpty ? nil : dateBought, category: category)
+        let newIngredient = Ingredient(id: UUID().uuidString, name: name, dateBought: dateBought, category: category)
         ingredients.append(newIngredient) // Update local state
         saveIngredientToFirestore(ingredient: newIngredient) // Save to Firestore
     }

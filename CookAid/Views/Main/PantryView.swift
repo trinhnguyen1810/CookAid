@@ -140,7 +140,7 @@ struct PantryView: View {
                     .foregroundColor(.black)
                 
                 // Safely unwrap the dateBought
-                let dateString = ingredient.dateBought ?? "N/A" // Use "N/A" if dateBought is nil
+                let dateString = ingredient.dateBought != nil ? DateFormatter.localizedString(from: ingredient.dateBought!, dateStyle: .medium, timeStyle: .none) : "N/A"
                 
                 Text("Date bought: \(dateString)") // Use formatted date string
                     .font(.custom("Cochin", size: 14))
@@ -155,6 +155,7 @@ struct PantryView: View {
             .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: 2) // Optional shadow for depth
         }
     }
+    
     struct PantryView_Previews: PreviewProvider {
         static var previews: some View {
             PantryView()
