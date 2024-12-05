@@ -8,7 +8,7 @@ struct AddIngredientView: View {
     @State private var name: String = ""
     @Environment(\.presentationMode) var presentationMode
     @State private var category: String = ""
-    @State private var dateBought: String = "" // Keep as String
+    @State private var dateBought: Date?  // Keep as String
     @State private var categories = ["Proteins", "Dairy & Dairy Alternatives", "Grains and Legumes", "Fruits & Vegetables", "Spices, Seasonings and Herbs", "Sauces and Condiments", "Cooking Essentials", "Others"]
 
     var body: some View {

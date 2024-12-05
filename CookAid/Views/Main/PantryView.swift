@@ -139,8 +139,7 @@ struct PantryView: View {
                     .fontWeight(.bold)
                     .foregroundColor(.black)
                 
-                und(Color.white)
-                            .c       // Safely unwrap the dateBought
+                // Safely unwrap the dateBought
                 let dateString = ingredient.dateBought ?? "N/A" // Use "N/A" if dateBought is nil
                 
                 Text("Date bought: \(dateString)") // Use formatted date string
@@ -151,7 +150,8 @@ struct PantryView: View {
             }
             .padding()
             .frame(maxWidth: .infinity) // Make the card expand to the available width
-            .backgroornerRadius(12)
+            .background(Color.white)
+            .cornerRadius(12)
             .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: 2) // Optional shadow for depth
         }
     }
