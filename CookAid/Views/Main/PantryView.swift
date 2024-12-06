@@ -2,7 +2,7 @@ import SwiftUI
 
 struct PantryView: View {
     // Sample list of ingredients
-    @State private var ingredients: [Ingredient] = []
+    @StateObject private var ingredientsManager = IngredientsManager()
     @State private var showAddIngredient = false
     @State private var searchText: String = ""
     
@@ -87,7 +87,7 @@ struct PantryView: View {
 
                         
                         // Displaying ingredients by category
-                        let groupedIngredients = Dictionary(grouping: ingredients.filter { ingredient in
+                        let groupedIngredients = Dictionary(grouping: ingredientsManager.ingredients.filter { ingredient in
                             searchText.isEmpty || ingredient.name.lowercased().contains(searchText.lowercased())
                         }) { $0.category }
                         
@@ -124,7 +124,7 @@ struct PantryView: View {
             }
             .edgesIgnoringSafeArea(.bottom)
             .sheet(isPresented: $showAddIngredient) {
-                AddIngredientView(ingredients: $ingredients)
+                AddIngredientView(ingredients: $ingredientsManager.ingredients)
             }
         }
     }
