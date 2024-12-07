@@ -1,31 +1,15 @@
 import SwiftUI
 
-struct GroceryItem: Identifiable {
-    let id = UUID()
-    let name: String
-    let category: String
-}
-
 struct GroceryView: View {
-    @State private var groceryItems: [GroceryItem] = [
-        GroceryItem(name: "Apples", category: "Fruits & Vegetables"),
-        GroceryItem(name: "Bananas", category: "Fruits & Vegetables"),
-        GroceryItem(name: "Carrots", category: "Fruits & Vegetables"),
-        GroceryItem(name: "Chicken", category: "Proteins"),
-        GroceryItem(name: "Milk", category: "Dairy & Dairy Alternatives"),
-        GroceryItem(name: "Rice", category: "Grains and Legumes"),
-        GroceryItem(name: "Salt", category: "Spices, Seasonings and Herbs"),
-        GroceryItem(name: "Olive Oil", category: "Others")
-    ]
-    
+    @StateObject private var groceryManager = GroceryManager() // Use GroceryManager
     @State private var searchText: String = ""
+    @State private var showAddGrocery = false // State to show the add grocery view
     
     var body: some View {
-        NavigationStack{
+        NavigationStack {
             ZStack {
                 ScrollView {
                     VStack(alignment: .leading) {
-                        
                         // Header Section
                         HStack {
                             Text("Grocery List")
@@ -47,7 +31,7 @@ struct GroceryView: View {
                                 .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: 2)
 
                             Button(action: {
-                                print("Add button tapped")
+                                showAddGrocery.toggle() // Show the add grocery view
                             }) {
                                 Image(systemName: "plus")
                                     .foregroundColor(.black)
@@ -56,7 +40,6 @@ struct GroceryView: View {
                         }
                         .padding(.horizontal)
 
-                
                         let customOrder = [
                             "Fruits & Vegetables",
                             "Proteins",
@@ -68,7 +51,7 @@ struct GroceryView: View {
                             "Others"
                         ]
 
-                        let groupedIngredients = Dictionary(grouping: groceryItems.filter { item in
+                        let groupedIngredients = Dictionary(grouping: groceryManager.groceryItems.filter { item in
                             searchText.isEmpty || item.name.lowercased().contains(searchText.lowercased())
                         }) { $0.category }
 
@@ -93,10 +76,12 @@ struct GroceryView: View {
                             }
                         }
                     }
-                  
                 }
 
                 BottomTabBar() // Your existing tab bar
+            }
+            .sheet(isPresented: $showAddGrocery) {
+                AddGroceryView(groceryManager: groceryManager) // Pass GroceryManager
             }
         }
     }
@@ -108,4 +93,3 @@ struct GroceryView_Previews: PreviewProvider {
         GroceryView()
     }
 }
-
