@@ -4,6 +4,8 @@ struct GroceryView: View {
     @StateObject private var groceryManager = GroceryManager() // Use GroceryManager
     @State private var searchText: String = ""
     @State private var showAddGrocery = false // State to show the add grocery view
+    @State private var showDeleteAlert = false // State to show delete confirmation alert
+    @State private var itemToDelete: GroceryItem? // The item to delete
     
     var body: some View {
         NavigationStack {
@@ -76,6 +78,10 @@ struct GroceryView: View {
                                         .onTapGesture {
                                             toggleCompletion(for: ingredient) // Toggle completion on tap
                                         }
+                                        .onLongPressGesture {
+                                            itemToDelete = ingredient // Set the item to delete
+                                            showDeleteAlert = true // Show delete confirmation alert
+                                        }
                                 }
                             }
                         }
@@ -87,6 +93,18 @@ struct GroceryView: View {
             .sheet(isPresented: $showAddGrocery) {
                 AddGroceryView(groceryManager: groceryManager) // Pass GroceryManager
             }
+            .alert(isPresented: $showDeleteAlert) {
+                Alert(
+                    title: Text("Delete Item"),
+                    message: Text("Are you sure you want to delete \(itemToDelete?.name ?? "")?"),
+                    primaryButton: .destructive(Text("Delete")) {
+                        if let itemToDelete = itemToDelete {
+                            deleteGroceryItem(itemToDelete) // Call delete function
+                        }
+                    },
+                    secondaryButton: .cancel()
+                )
+            }
         }
     }
 
@@ -94,6 +112,15 @@ struct GroceryView: View {
         if let index = groceryManager.groceryItems.firstIndex(where: { $0.id == ingredient.id }) {
             groceryManager.groceryItems[index].completed.toggle() // Toggle the completed state
         }
+    }
+
+    private func deleteGroceryItem(_ item: GroceryItem) {
+        // Remove from local state
+        if let index = groceryManager.groceryItems.firstIndex(where: { $0.id == item.id }) {
+            groceryManager.groceryItems.remove(at: index)
+        }
+        // Delete from Firestore
+        groceryManager.deleteGroceryItem(item) // Call the delete function in GroceryManager
     }
 }
 

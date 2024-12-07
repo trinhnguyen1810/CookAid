@@ -32,4 +32,15 @@ class GroceryManager: ObservableObject {
             print("Error adding grocery item: \(error.localizedDescription)")
         }
     }
+
+    func deleteGroceryItem(_ groceryItem: GroceryItem) {
+        let db = Firestore.firestore()
+        db.collection("users").document(Auth.auth().currentUser!.uid).collection("groceryItems").document(groceryItem.id).delete() { error in
+            if let error = error {
+                print("Error deleting grocery item: \(error.localizedDescription)")
+            } else {
+                print("Grocery item deleted successfully!")
+            }
+        }
+    }
 }
