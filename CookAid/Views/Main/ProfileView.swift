@@ -2,10 +2,25 @@ import SwiftUI
 
 struct ProfileView: View {
     @EnvironmentObject var viewModel: AuthViewModel  // Changed to lowercase for convention
+    @Environment(\.presentationMode) var presentationMode // To dismiss the view
 
     var body: some View {
-        if let user = viewModel.currentUser {  // Updated to use the correct viewModel reference
-            VStack(spacing: 20) {
+        VStack(spacing: 20) {
+            // Custom Back Button
+            HStack {
+                Button(action: {
+                    presentationMode.wrappedValue.dismiss() // Dismiss the view
+                }) {
+                    Image(systemName: "chevron.left") // Back arrow icon
+                        .font(.title)
+                        .foregroundColor(.black)
+                }
+                .padding(.leading)
+
+                Spacer()
+            }
+
+            if let user = viewModel.currentUser {  // Updated to use the correct viewModel reference
                 // Profile Header
                 HStack {
                     // Profile Picture
@@ -70,10 +85,10 @@ struct ProfileView: View {
                 
                 Spacer() // Push content to the top
             }
-            .padding()
-            .background(Color.white) // White background
-            .navigationBarTitle("Profile", displayMode: .inline)
         }
+        .padding()
+        .background(Color.white) // White background
+        .navigationBarTitle("Profile", displayMode: .inline)
     }
 }
 

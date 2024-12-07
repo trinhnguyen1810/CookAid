@@ -1,6 +1,8 @@
 import SwiftUI
 import PhotosUI
 import FirebaseStorage
+import FirebaseFirestore // Add this import statement
+
 
 struct EditProfileView: View {
     @Environment(\.presentationMode) var presentationMode
@@ -58,7 +60,7 @@ struct EditProfileView: View {
                 Text("Save Changes")
                     .frame(maxWidth: .infinity)
                     .padding()
-                    .background(Color.black) // Set background color to blue
+                    .background(Color.black) // Set background color to black
                     .foregroundColor(.white) // Set text color to white
                     .cornerRadius(8)
                     .font(.custom("Cochin", size: 18)) // Set font style
@@ -97,11 +99,33 @@ struct EditProfileView: View {
                     if let imageUrl = imageUrl {
                         let updatedUserWithImage = User(id: user.id, fullname: newName, email: user.email, profilePicture: imageUrl)
                         viewModel.currentUser = updatedUserWithImage // Update the current user in the view model
+                        // Save updated user data to Firestore
+                        saveUserToFirestore(updatedUserWithImage)
                     }
                 }
+            } else {
+                // If no image is uploaded, just save the updated name
+                saveUserToFirestore(updatedUser)
             }
         }
         presentationMode.wrappedValue.dismiss() // Dismiss the view
+    }
+
+    private func saveUserToFirestore(_ user: User) {
+        // Save the updated user data to Firestore
+        let db = Firestore.firestore()
+        do {
+            let encodedUser = try Firestore.Encoder().encode(user)
+            db.collection("users").document(user.id).setData(encodedUser) { error in
+                if let error = error {
+                    print("DEBUG: Failed to update user in Firestore with error: \(error.localizedDescription)")
+                } else {
+                    print("DEBUG: User updated successfully in Firestore with ID: \(user.id)")
+                }
+            }
+        } catch {
+            print("DEBUG: Failed to encode user with error: \(error.localizedDescription)")
+        }
     }
 
     private func uploadImage(_ data: Data, completion: @escaping (String?) -> Void) {
