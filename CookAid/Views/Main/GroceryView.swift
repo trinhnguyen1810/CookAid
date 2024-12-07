@@ -6,7 +6,9 @@ struct GroceryView: View {
     @State private var showAddGrocery = false // State to show the add grocery view
     @State private var showDeleteAlert = false // State to show delete confirmation alert
     @State private var itemToDelete: GroceryItem? // The item to delete
-    
+    @State private var itemToAddToPantry: GroceryItem? // The item to add to pantry
+    @State private var showActionAlert = false // State to show action alert
+
     var body: some View {
         NavigationStack {
             ZStack {
@@ -79,8 +81,8 @@ struct GroceryView: View {
                                             toggleCompletion(for: ingredient) // Toggle completion on tap
                                         }
                                         .onLongPressGesture {
-                                            itemToDelete = ingredient // Set the item to delete
-                                            showDeleteAlert = true // Show delete confirmation alert
+                                            itemToAddToPantry = ingredient // Set the item to add to pantry
+                                            showActionAlert = true // Show action options
                                         }
                                 }
                             }
@@ -105,6 +107,22 @@ struct GroceryView: View {
                     secondaryButton: .cancel()
                 )
             }
+            .alert(isPresented: $showActionAlert) {
+                Alert(
+                    title: Text("Choose an Action"),
+                    message: Text("What would you like to do with \(itemToAddToPantry?.name ?? "")?"),
+                    primaryButton: .default(Text("Add to Pantry")) {
+                        if let item = itemToAddToPantry {
+                            addToPantry(item) // Call the function to add to pantry
+                        }
+                    },
+                    secondaryButton: .destructive(Text("Delete")) {
+                        if let itemToDelete = itemToAddToPantry {
+                            deleteGroceryItem(itemToDelete) // Call delete function
+                        }
+                    }
+                )
+            }
         }
     }
 
@@ -121,6 +139,14 @@ struct GroceryView: View {
         }
         // Delete from Firestore
         groceryManager.deleteGroceryItem(item) // Call the delete function in GroceryManager
+    }
+
+    private func addToPantry(_ item: GroceryItem) {
+        let newIngredient = Ingredient(id: item.id, name: item.name, dateBought: Date(), category: item.category)
+        // Add to pantry using IngredientsManager
+        let ingredientsManager = IngredientsManager() // Create an instance of IngredientsManager
+        ingredientsManager.addIngredient(newIngredient) // Add to pantry
+        deleteGroceryItem(item) // Remove from grocery list
     }
 }
 
