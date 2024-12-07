@@ -5,7 +5,8 @@ struct PantryView: View {
     @StateObject private var ingredientsManager = IngredientsManager()
     @State private var showAddIngredient = false
     @State private var searchText: String = ""
-    
+    @State private var selectedIngredient: Ingredient? // To hold the ingredient to edit
+
     var body: some View {
         NavigationView {
             ZStack {
@@ -85,7 +86,6 @@ struct PantryView: View {
                         // Define custom order for categories
                         let customOrder = ["Proteins", "Dairy & Dairy Alternatives", "Grains and Legumes", "Fruits & Vegetables", "Spices, Seasonings and Herbs", "Sauces and Condiments", "Cooking Essentials","Others"]
 
-                        
                         // Displaying ingredients by category
                         let groupedIngredients = Dictionary(grouping: ingredientsManager.ingredients.filter { ingredient in
                             searchText.isEmpty || ingredient.name.lowercased().contains(searchText.lowercased())
@@ -105,9 +105,12 @@ struct PantryView: View {
                                     let ingredientsInCategory = groupedIngredients[category] ?? []
                                     
                                     ForEach(ingredientsInCategory) { ingredient in
-                                        IngredientCard(ingredient: ingredient)
+                                        IngredientCard(ingredient: ingredient, ingredients: $ingredientsManager.ingredients)
                                             .padding(.horizontal)
                                             .padding(.top, 10)
+                                            .onTapGesture {
+                                                selectedIngredient = ingredient // Set the selected ingredient for editing on tap
+                                            }
                                     }
                                 }
                             }
@@ -123,6 +126,9 @@ struct PantryView: View {
                     .padding(.bottom, 30)
             }
             .edgesIgnoringSafeArea(.bottom)
+            .sheet(item: $selectedIngredient) { ingredient in
+                EditIngredientView(ingredients: $ingredientsManager.ingredients, ingredient: ingredient)
+            }
             .sheet(isPresented: $showAddIngredient) {
                 AddIngredientView(ingredients: $ingredientsManager.ingredients)
             }
@@ -131,7 +137,8 @@ struct PantryView: View {
     
     struct IngredientCard: View {
         let ingredient: Ingredient
-        
+        @Binding var ingredients: [Ingredient] // Add binding to ingredients
+
         var body: some View {
             VStack {
                 Text(ingredient.name)
@@ -139,20 +146,21 @@ struct PantryView: View {
                     .fontWeight(.bold)
                     .foregroundColor(.black)
                 
-                // Safely unwrap the dateBought
                 let dateString = ingredient.dateBought != nil ? DateFormatter.localizedString(from: ingredient.dateBought!, dateStyle: .medium, timeStyle: .none) : "N/A"
                 
-                Text("Date bought: \(dateString)") // Use formatted date string
+                Text("Date bought: \(dateString)")
                     .font(.custom("Cochin", size: 14))
                     .italic()
                     .foregroundColor(.gray)
-                    .padding(.top, 2) // Space between name and date
+                    .padding(.top, 2)
+
+                // Removed the Edit button; the card itself is tappable
             }
             .padding()
-            .frame(maxWidth: .infinity) // Make the card expand to the available width
+            .frame(maxWidth: .infinity)
             .background(Color.white)
             .cornerRadius(12)
-            .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: 2) // Optional shadow for depth
+            .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: 2)
         }
     }
     
@@ -161,5 +169,4 @@ struct PantryView: View {
             PantryView()
         }
     }
-    
 }
