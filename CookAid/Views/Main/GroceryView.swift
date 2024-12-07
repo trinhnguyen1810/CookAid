@@ -72,6 +72,10 @@ struct GroceryView: View {
                                         .background(Color.white)
                                         .cornerRadius(8)
                                         .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: 2)
+                                        .strikethrough(ingredient.completed) // Apply strikethrough based on completion
+                                        .onTapGesture {
+                                            toggleCompletion(for: ingredient) // Toggle completion on tap
+                                        }
                                 }
                             }
                         }
@@ -83,6 +87,12 @@ struct GroceryView: View {
             .sheet(isPresented: $showAddGrocery) {
                 AddGroceryView(groceryManager: groceryManager) // Pass GroceryManager
             }
+        }
+    }
+
+    private func toggleCompletion(for ingredient: GroceryItem) {
+        if let index = groceryManager.groceryItems.firstIndex(where: { $0.id == ingredient.id }) {
+            groceryManager.groceryItems[index].completed.toggle() // Toggle the completed state
         }
     }
 }
