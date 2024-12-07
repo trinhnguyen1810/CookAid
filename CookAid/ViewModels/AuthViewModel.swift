@@ -34,7 +34,7 @@ class AuthViewModel: ObservableObject {
             self.userSession = result.user
             
             // Create a User object and encode it
-            let user = User(id: result.user.uid, fullname: fullname, email: email)
+            let user = User(id: result.user.uid, fullname: fullname, email: email, profilePicture: nil) // Set profilePicture to nil
             guard let encodedUser = try? Firestore.Encoder().encode(user) else {
                 print("DEBUG: Failed to encode user")
                 return

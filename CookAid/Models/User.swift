@@ -1,16 +1,10 @@
-//
-//  User.swift
-//  CookAid
-//
-//  Created by Vivian Nguyen on 10/28/24.
-//
-
 import Foundation
 
 struct User: Identifiable, Codable {
     let id: String
     let fullname: String
     let email: String
+    let profilePicture: String? // New property for profile picture URL
     
     var initials: String {
         let formatter = PersonNameComponentsFormatter()
@@ -23,5 +17,5 @@ struct User: Identifiable, Codable {
 }
 
 extension User {
-    static var MOCK_USER = User(id: NSUUID().uuidString, fullname: "John Doe", email: "johndoe@example.com")
+    static var MOCK_USER = User(id: NSUUID().uuidString, fullname: "John Doe", email: "johndoe@example.com", profilePicture: nil)
 }

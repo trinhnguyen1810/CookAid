@@ -9,12 +9,30 @@ struct ProfileView: View {
                 // Profile Header
                 HStack {
                     // Profile Picture
-                    Image(systemName: "person.fill") // Replace with actual profile picture
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 50, height: 50)
-                        .clipShape(Circle())
-                        .padding()
+                    if let profilePicture = user.profilePicture, let url = URL(string: profilePicture) {
+                        AsyncImage(url: url) { image in
+                            image
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 50, height: 50)
+                                .clipShape(Circle())
+                                .padding()
+                        } placeholder: {
+                            Image(systemName: "person.fill")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 50, height: 50)
+                                .clipShape(Circle())
+                                .padding()
+                        }
+                    } else {
+                        Image(systemName: "person.fill")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 50, height: 50)
+                            .clipShape(Circle())
+                            .padding()
+                    }
                     
                     // Profile Name
                     Text(user.fullname)
@@ -27,10 +45,7 @@ struct ProfileView: View {
                 .padding(.top)
                 
                 // Edit Profile Button
-                Button(action: {
-                    print("Edit Profile tapped")
-                    // Add functionality to edit the profile
-                }) {
+                NavigationLink(destination: EditProfileView()) {
                     Text("Edit Profile")
                         .frame(maxWidth: .infinity)
                         .padding()
@@ -68,4 +83,3 @@ struct ProfileView_Previews: PreviewProvider {
             .environmentObject(AuthViewModel()) // Provide a mock AuthViewModel for preview
     }
 }
-
