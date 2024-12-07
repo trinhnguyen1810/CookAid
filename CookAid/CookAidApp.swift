@@ -5,9 +5,8 @@ import Firebase
 struct CookAidApp: App {
     @StateObject var viewModel = AuthViewModel()
     
-    init (){
-        FirebaseApp.configure()
-    }
+    @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+    
     var body: some Scene {
         WindowGroup {
             ContentView()

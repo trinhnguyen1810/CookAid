@@ -1,4 +1,5 @@
 import SwiftUI
+import Firebase
 
 struct EditIngredientView: View {
     @Binding var ingredients: [Ingredient]
@@ -25,13 +26,13 @@ struct EditIngredientView: View {
                     TextField("Ingredient Name", text: $name)
                         .font(.custom("Cochin", size: 18))
 
-                    Picker("Category", selection: $category) { // Removed the extra comma here
+                    Picker("Category", selection: $category) {
                         ForEach(["Proteins", "Dairy & Dairy Alternatives", "Grains and Legumes", "Fruits & Vegetables", "Spices, Seasonings and Herbs", "Sauces and Condiments", "Cooking Essentials", "Others"], id: \.self) { category in
                             Text(category)
                         }
                     }
                     .pickerStyle(MenuPickerStyle())
-                    .font(.custom("Cochin", size: 18)) // Set font for the Picker
+                    .font(.custom("Cochin", size: 18))
 
                     DatePicker("Date Bought (optional)", selection: Binding(
                         get: { dateBought ?? Date() },
@@ -40,11 +41,15 @@ struct EditIngredientView: View {
                     .font(.custom("Cochin", size: 18))
                 }
 
-                HStack {
+                HStack(spacing: 20) {
                     Spacer()
-                    Button("Edit") {
-                        updateIngredient()
+                    Button("Update") {
+                        print("Update button pressed - starting update")
+                        DispatchQueue.main.async {
+                            updateIngredient()
+                        }
                     }
+                    .buttonStyle(PlainButtonStyle()) // Add this to prevent overlap
                     .font(.custom("Cochin", size: 18))
                     .padding()
                     .background(Color.black)
@@ -52,8 +57,12 @@ struct EditIngredientView: View {
                     .cornerRadius(8)
 
                     Button("Delete") {
-                        deleteIngredient()
+                        print("Delete button pressed - starting delete")
+                        DispatchQueue.main.async {
+                            deleteIngredient()
+                        }
                     }
+                    .buttonStyle(PlainButtonStyle()) // Add this to prevent overlap
                     .font(.custom("Cochin", size: 18))
                     .padding()
                     .background(Color.red)
@@ -69,17 +78,61 @@ struct EditIngredientView: View {
     }
 
     private func updateIngredient() {
+        print("Updating ingredient: \(name) in category: \(category)")
+        guard !name.isEmpty else {
+            print("Cannot update: Name is empty")
+            return
+        }
+        
         if let index = ingredients.firstIndex(where: { $0.id == ingredient.id }) {
-            // Update the ingredient
-            ingredients[index] = Ingredient(id: ingredient.id, name: name, dateBought: dateBought, category: category)
-            presentationMode.wrappedValue.dismiss() // Dismiss the view after updating
+            let updatedIngredient = Ingredient(
+                id: ingredient.id,
+                name: name,
+                dateBought: dateBought,
+                category: category
+            )
+            
+            ingredients[index] = updatedIngredient
+            saveIngredientToFirestore(ingredient: updatedIngredient)
+            
+            print("Ingredient updated at index \(index)")
+            presentationMode.wrappedValue.dismiss()
+        } else {
+            print("Ingredient not found for update.")
         }
     }
 
     private func deleteIngredient() {
+        print("Deleting ingredient: \(name)")
         if let index = ingredients.firstIndex(where: { $0.id == ingredient.id }) {
-            ingredients.remove(at: index) // Remove from local array
-            presentationMode.wrappedValue.dismiss() // Dismiss the view after deleting
+            let ingredientToDelete = ingredients[index]
+            ingredients.remove(at: index)
+            deleteIngredientFromFirestore(ingredient: ingredientToDelete)
+            print("Ingredient deleted at index \(index)")
+            presentationMode.wrappedValue.dismiss()
+        } else {
+            print("Ingredient not found for deletion.")
+        }
+    }
+
+    private func saveIngredientToFirestore(ingredient: Ingredient) {
+        let db = Firestore.firestore()
+        do {
+            let _ = try db.collection("users").document(Auth.auth().currentUser!.uid).collection("ingredients").document(ingredient.id).setData(from: ingredient)
+            print("Ingredient updated successfully in Firestore!")
+        } catch {
+            print("Error updating ingredient in Firestore: \(error.localizedDescription)")
+        }
+    }
+
+    private func deleteIngredientFromFirestore(ingredient: Ingredient) {
+        let db = Firestore.firestore()
+        db.collection("users").document(Auth.auth().currentUser!.uid).collection("ingredients").document(ingredient.id).delete() { error in
+            if let error = error {
+                print("Error deleting ingredient from Firestore: \(error.localizedDescription)")
+            } else {
+                print("Ingredient deleted successfully from Firestore!")
+            }
         }
     }
 }
