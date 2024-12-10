@@ -14,7 +14,6 @@
 		AC4FD69F2CBAD41C0093A7DC /* MyRecipeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC4FD69E2CBAD41C0093A7DC /* MyRecipeView.swift */; };
 		AC4FD6A12CBAD5830093A7DC /* BottomTabBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC4FD6A02CBAD5830093A7DC /* BottomTabBar.swift */; };
 		AC4FD6A32CBAD5AD0093A7DC /* TabBarButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC4FD6A22CBAD5AD0093A7DC /* TabBarButton.swift */; };
-		AC4FD6A52CBB9CC80093A7DC /* RecipeCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC4FD6A42CBB9CC80093A7DC /* RecipeCard.swift */; };
 		AC4FD6A72CBB9DA00093A7DC /* RecipeDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC4FD6A62CBB9DA00093A7DC /* RecipeDetailView.swift */; };
 		AC4FD6A92CBBA6D40093A7DC /* GroceryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC4FD6A82CBBA6D40093A7DC /* GroceryView.swift */; };
 		AC7597762CB90C890047D091 /* CookAidApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC7597752CB90C890047D091 /* CookAidApp.swift */; };
@@ -35,6 +34,8 @@
 		AC8AB1592D040A99001A0FF4 /* GroceryManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC8AB1582D040A99001A0FF4 /* GroceryManager.swift */; };
 		AC8AB15B2D040AD9001A0FF4 /* AddGroceryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC8AB15A2D040AD9001A0FF4 /* AddGroceryView.swift */; };
 		AC8AB15D2D041564001A0FF4 /* EditProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC8AB15C2D041564001A0FF4 /* EditProfileView.swift */; };
+		AC8AB15F2D081857001A0FF4 /* RecipeAPIManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC8AB15E2D081857001A0FF4 /* RecipeAPIManager.swift */; };
+		AC8AB1612D081878001A0FF4 /* Recipe.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC8AB1602D081878001A0FF4 /* Recipe.swift */; };
 		AC8E4B602CBC33D800A7475C /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = AC8E4B5F2CBC33D700A7475C /* GoogleService-Info.plist */; };
 		AC8E4B632CBC368B00A7475C /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = AC8E4B622CBC368B00A7475C /* FirebaseAnalytics */; };
 		AC8E4B652CBC368B00A7475C /* FirebaseAnalyticsOnDeviceConversion in Frameworks */ = {isa = PBXBuildFile; productRef = AC8E4B642CBC368B00A7475C /* FirebaseAnalyticsOnDeviceConversion */; };
@@ -76,7 +77,6 @@
 		AC4FD69E2CBAD41C0093A7DC /* MyRecipeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyRecipeView.swift; sourceTree = "<group>"; };
 		AC4FD6A02CBAD5830093A7DC /* BottomTabBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BottomTabBar.swift; sourceTree = "<group>"; };
 		AC4FD6A22CBAD5AD0093A7DC /* TabBarButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabBarButton.swift; sourceTree = "<group>"; };
-		AC4FD6A42CBB9CC80093A7DC /* RecipeCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeCard.swift; sourceTree = "<group>"; };
 		AC4FD6A62CBB9DA00093A7DC /* RecipeDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeDetailView.swift; sourceTree = "<group>"; };
 		AC4FD6A82CBBA6D40093A7DC /* GroceryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroceryView.swift; sourceTree = "<group>"; };
 		AC7597722CB90C890047D091 /* CookAid.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CookAid.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -98,6 +98,8 @@
 		AC8AB1582D040A99001A0FF4 /* GroceryManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroceryManager.swift; sourceTree = "<group>"; };
 		AC8AB15A2D040AD9001A0FF4 /* AddGroceryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddGroceryView.swift; sourceTree = "<group>"; };
 		AC8AB15C2D041564001A0FF4 /* EditProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditProfileView.swift; sourceTree = "<group>"; };
+		AC8AB15E2D081857001A0FF4 /* RecipeAPIManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeAPIManager.swift; sourceTree = "<group>"; };
+		AC8AB1602D081878001A0FF4 /* Recipe.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Recipe.swift; sourceTree = "<group>"; };
 		AC8E4B5F2CBC33D700A7475C /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = "GoogleService-Info.plist"; path = "../../../../Downloads/GoogleService-Info.plist"; sourceTree = "<group>"; };
 		AC8E4B962CBC48A200A7475C /* FirebaseManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirebaseManager.swift; sourceTree = "<group>"; };
 		ACB3418A2CD05A800029FC2E /* InputView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputView.swift; sourceTree = "<group>"; };
@@ -230,6 +232,7 @@
 				ACB3418C2CD09DA90029FC2E /* User.swift */,
 				AC76CA1E2D017CCC001540AF /* Ingredient.swift */,
 				AC8AB1562D040A64001A0FF4 /* GroceryItem.swift */,
+				AC8AB1602D081878001A0FF4 /* Recipe.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -246,7 +249,6 @@
 			children = (
 				AC4FD6A02CBAD5830093A7DC /* BottomTabBar.swift */,
 				AC4FD6A22CBAD5AD0093A7DC /* TabBarButton.swift */,
-				AC4FD6A42CBB9CC80093A7DC /* RecipeCard.swift */,
 				ACB3418A2CD05A800029FC2E /* InputView.swift */,
 			);
 			path = Components;
@@ -274,6 +276,7 @@
 				AC8E4B962CBC48A200A7475C /* FirebaseManager.swift */,
 				AC76CA242D02A928001540AF /* IngredientsManager.swift */,
 				AC8AB1582D040A99001A0FF4 /* GroceryManager.swift */,
+				AC8AB15E2D081857001A0FF4 /* RecipeAPIManager.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -399,8 +402,8 @@
 				AC8AB1552D03D20D001A0FF4 /* AppDelegate.swift in Sources */,
 				AC76CA272D02AD2A001540AF /* EditIngredientView.swift in Sources */,
 				AC4FD69B2CBAD3D40093A7DC /* RecommenderView.swift in Sources */,
+				AC8AB15F2D081857001A0FF4 /* RecipeAPIManager.swift in Sources */,
 				AC4FD69D2CBAD3E80093A7DC /* ProfileView.swift in Sources */,
-				AC4FD6A52CBB9CC80093A7DC /* RecipeCard.swift in Sources */,
 				AC4FD6A32CBAD5AD0093A7DC /* TabBarButton.swift in Sources */,
 				AC4FD69F2CBAD41C0093A7DC /* MyRecipeView.swift in Sources */,
 				AC8AB1592D040A99001A0FF4 /* GroceryManager.swift in Sources */,
@@ -409,6 +412,7 @@
 				AC7597762CB90C890047D091 /* CookAidApp.swift in Sources */,
 				AC8E4B972CBC48A200A7475C /* FirebaseManager.swift in Sources */,
 				AC8AB15B2D040AD9001A0FF4 /* AddGroceryView.swift in Sources */,
+				AC8AB1612D081878001A0FF4 /* Recipe.swift in Sources */,
 				ACB3418D2CD09DA90029FC2E /* User.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

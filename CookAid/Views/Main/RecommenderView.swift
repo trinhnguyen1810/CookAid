@@ -57,15 +57,6 @@ struct RecipesRecommendedView: View {
                 .foregroundColor(.black)
                 .padding(.leading, 20)
 
-            // Recipe Cards Grid
-            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 20) {
-                ForEach(["Spaghetti Carbonara", "Chicken Alfredo", "Vegetable Stir Fry", "Beef Tacos", "Pancakes", "Chocolate Cake"], id: \.self) { recipe in
-                    NavigationLink(destination: RecipeDetailView(recipe: recipe)) {
-                        RecipeCard(recipe: recipe) // Reusing the RecipeCard component
-                    }
-                }
-            }
-            .padding(.horizontal, 20)
         }
     }
 }

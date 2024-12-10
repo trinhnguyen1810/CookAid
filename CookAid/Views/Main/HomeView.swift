@@ -9,25 +9,33 @@ struct HomeView: View {
     @State private var row1Items: [String] = []
     @State private var row2Items: [String] = []
     
-    @EnvironmentObject var viewModel: AuthViewModel // Add this line to access the viewModel
+    @EnvironmentObject var viewModel: AuthViewModel
+    @StateObject private var recipeAPIManager = RecipeAPIManager()
 
     var body: some View {
         NavigationStack {
             ZStack {
                 ScrollView {
                     VStack {
-                        HeaderView() // Update HeaderView to include the viewModel
+                        HeaderView()
                         
                         MyPantryView(row1Items: $row1Items, row2Items: $row2Items)
                         
-                        RecommendedRecipesView()
-
+                        if let errorMessage = recipeAPIManager.errorMessage {
+                            Text(errorMessage)
+                                .foregroundColor(.red)
+                                .padding()
+                        } else {
+                            RecommendedRecipesView(recipes: recipeAPIManager.recipes)
+                        }
+                        
                         Spacer()
                     }
                     .background(Color.white)
                     .edgesIgnoringSafeArea(.all)
                     .onAppear {
                         splitPantryItems()
+                        recipeAPIManager.fetchRecipes(ingredients: allPantryItems)
                     }
                     .padding(.bottom, 60)
                 }
@@ -150,19 +158,21 @@ struct PantryItemsRow: View {
 }
 
 struct RecommendedRecipesView: View {
+    var recipes: [Recipe] // Accept recipes as a parameter
+
     var body: some View {
         VStack(alignment: .leading) {
-            Text("Recommended Recipes")
-                .font(.custom("Cochin", size: 22))
+            Text("Recipes Based On Ingredients")
+                .font(.custom("Cochin", size: 20))
                 .fontWeight(.bold)
                 .foregroundColor(.black)
                 .padding(.top, 20)
                 .padding(.leading, 20)
 
             LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 20) {
-                ForEach(["Spaghetti Carbonara", "Chicken Alfredo", "Vegetable Stir Fry", "Beef Tacos", "Pancakes", "Chocolate Cake"], id: \.self) { recipe in
-                    NavigationLink(destination: RecipeDetailView(recipe: recipe)) {
-                        RecipeCard(recipe: recipe)
+                ForEach(recipes) { recipe in
+                    NavigationLink(destination: RecipeDetailView(recipe: recipe.title)) {
+                        RecipeCard(recipe: recipe.title, image: recipe.image) // Pass the image to the RecipeCard
                     }
                 }
             }
@@ -173,15 +183,24 @@ struct RecommendedRecipesView: View {
 
 struct RecipeCard: View {
     var recipe: String
-    
+    var image: String
+
     var body: some View {
         VStack {
-            Image(systemName: "photo")
-                .resizable()
-                .scaledToFit()
-                .frame(height: 100)
-                .foregroundColor(.black)
-                .cornerRadius(8)
+            AsyncImage(url: URL(string: image)) { image in
+                image
+                    .resizable()
+                    .scaledToFit()
+                    .frame(height: 100)
+                    .cornerRadius(8)
+            } placeholder: {
+                Image(systemName: "photo")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(height: 100)
+                    .foregroundColor(.black)
+                    .cornerRadius(8)
+            }
             
             Text(recipe)
                 .font(.custom("Cochin", size: 15))
@@ -206,6 +225,7 @@ struct RecipeCard: View {
         .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.black, lineWidth: 1))
     }
 }
+
 
 struct RecipeDetailView: View {
     var recipe: String
