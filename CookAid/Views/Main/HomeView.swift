@@ -4,6 +4,7 @@ struct HomeView: View {
     @EnvironmentObject var viewModel: AuthViewModel
     @EnvironmentObject var ingredientsManager: IngredientsManager
     @StateObject private var recipeAPIManager = RecipeAPIManager()
+    @State private var showingAddIngredientView = false
     
     @State private var row1Items: [String] = []
     @State private var row2Items: [String] = []
@@ -15,7 +16,8 @@ struct HomeView: View {
                     VStack {
                         HeaderView()
                         
-                        MyPantryView(row1Items: $row1Items, row2Items: $row2Items)
+                        // Pass the state variable to MyPantryView
+                        MyPantryView(row1Items: $row1Items, row2Items: $row2Items, showingAddIngredientView: $showingAddIngredientView)
                         
                         if let errorMessage = recipeAPIManager.errorMessage {
                             Text(errorMessage)
@@ -29,16 +31,24 @@ struct HomeView: View {
                     }
                     .background(Color.white)
                     .edgesIgnoringSafeArea(.all)
-                    .task {  // Changed from .onAppear to .task
-                        // Fetch ingredients and update pantry items
+                    .task {
                         await ingredientsManager.fetchIngredients()
-                        splitPantryItems() // Call this after fetching ingredients
+                        splitPantryItems()
                         await recipeAPIManager.fetchRecipes(ingredients: ingredientsManager.ingredients.map { $0.name })
+                    }
+                    .onChange(of: ingredientsManager.ingredients.count) { _ in
+                        splitPantryItems()
+                        Task {
+                            await recipeAPIManager.fetchRecipes(ingredients: ingredientsManager.ingredients.map { $0.name })
+                        }
                     }
                     .padding(.bottom, 60)
                 }
                 BottomTabBar()
             }
+        }
+        .sheet(isPresented: $showingAddIngredientView) { // Corrected this line
+            AddIngredientView(ingredients: $ingredientsManager.ingredients) // Present the AddIngredientView
         }
     }
 
@@ -79,6 +89,7 @@ struct HeaderView: View {
 struct MyPantryView: View {
     @Binding var row1Items: [String]
     @Binding var row2Items: [String]
+    @Binding var showingAddIngredientView: Bool // Add this line
     
     var body: some View {
         VStack(alignment: .leading) {
@@ -103,8 +114,9 @@ struct MyPantryView: View {
                         .cornerRadius(8)
                     }
 
+                    // Plus Button to add ingredient
                     Button(action: {
-                        // Action for adding item
+                        showingAddIngredientView = true // Show the AddIngredientView
                     }) {
                         HStack {
                             Image(systemName: "plus")
@@ -183,26 +195,31 @@ struct RecipeCard: View {
     var image: String
 
     var body: some View {
-        VStack {
+        VStack(alignment: .leading) {  // Changed to .leading alignment
             AsyncImage(url: URL(string: image)) { image in
                 image
                     .resizable()
                     .scaledToFit()
-                    .frame(height: 100)
+                    .frame(height: 120)  // Increased height from 100
                     .cornerRadius(8)
             } placeholder: {
                 Image(systemName: "photo")
                     .resizable()
                     .scaledToFit()
-                    .frame(height: 100)
+                    .frame(height: 120)  // Increased height from 100
                     .foregroundColor(.black)
                     .cornerRadius(8)
             }
             
             Text(recipe)
-                .font(.custom("Cochin", size: 15))
+                .font(.custom("Cochin", size: 18))  // Increased from 15
                 .fontWeight(.medium)
                 .foregroundColor(.black)
+                .lineLimit(2)
+                .truncationMode(.tail)
+                .multilineTextAlignment(.leading)
+                .frame(height: 50)  // Fixed height for text area
+                .frame(maxWidth: .infinity, alignment: .leading)
 
             HStack {
                 Spacer()
@@ -212,17 +229,17 @@ struct RecipeCard: View {
                     Image(systemName: "ellipsis")
                         .foregroundColor(.black)
                 }
-                .padding(.top, 8)
             }
+            .padding(.top, 4)  // Reduced from 8 to accommodate larger text area
         }
         .padding()
         .background(Color.white)
         .cornerRadius(8)
-        .frame(minHeight: 180)
+        .frame(height: 220)  // Fixed total height
+        .frame(maxWidth: .infinity)
         .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.black, lineWidth: 1))
     }
 }
-
 
 struct HomeView_Previews: PreviewProvider {
     static var previews: some View {
@@ -230,4 +247,3 @@ struct HomeView_Previews: PreviewProvider {
             .environmentObject(IngredientsManager(recipeAPIManager: RecipeAPIManager())) // Provide a mock AuthViewModel for preview
     }
 }
-
