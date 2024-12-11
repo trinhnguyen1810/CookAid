@@ -5,29 +5,64 @@ import FirebaseAuth
 
 class IngredientsManager: ObservableObject {
     @Published var ingredients: [Ingredient] = []
-
-    init() {
-        fetchIngredients()
-    }
-
-    func fetchIngredients() {
-        let db = Firestore.firestore()
-        db.collection("users").document(Auth.auth().currentUser!.uid).collection("ingredients").getDocuments { (snapshot, error) in
-            if let error = error {
-                print("Error fetching ingredients: \(error.localizedDescription)")
-                return
-            }
-            self.ingredients = snapshot?.documents.compactMap { document in
-                try? document.data(as: Ingredient.self)
-            } ?? []
+    private var recipeAPIManager: RecipeAPIManager?
+    
+    init(recipeAPIManager: RecipeAPIManager) {
+        self.recipeAPIManager = recipeAPIManager
+        Task {
+            await fetchIngredients()
         }
     }
 
-    func addIngredient(_ ingredient: Ingredient) {
+    init() {
+        Task {
+            await fetchIngredients()
+        }
+    }
+
+    @MainActor
+    func fetchIngredients() async {
+        guard let currentUser = Auth.auth().currentUser else {
+            print("No authenticated user found")
+            return
+        }
+        
         let db = Firestore.firestore()
         do {
-            let _ = try db.collection("users").document(Auth.auth().currentUser!.uid).collection("ingredients").document(ingredient.id).setData(from: ingredient)
-            ingredients.append(ingredient) // Update local state
+            let snapshot = try await db.collection("users")
+                .document(currentUser.uid)
+                .collection("ingredients")
+                .getDocuments()
+            
+            self.ingredients = snapshot.documents.compactMap { document in
+                try? document.data(as: Ingredient.self)
+            }
+        } catch {
+            print("Error fetching ingredients: \(error.localizedDescription)")
+        }
+    }
+
+    func addIngredient(_ ingredient: Ingredient) async {
+        guard let currentUser = Auth.auth().currentUser else {
+            print("No authenticated user found")
+            return
+        }
+        
+        let db = Firestore.firestore()
+        do {
+            try await db.collection("users")
+                .document(currentUser.uid)
+                .collection("ingredients")
+                .document(ingredient.id)
+                .setData(from: ingredient)
+            
+            await MainActor.run {
+                ingredients.append(ingredient)
+            }
+            
+            if let recipeAPIManager = recipeAPIManager {
+                await recipeAPIManager.fetchRecipes(ingredients: ingredients.map { $0.name })
+            }
         } catch {
             print("Error adding ingredient: \(error.localizedDescription)")
         }

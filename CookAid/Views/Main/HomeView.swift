@@ -1,16 +1,12 @@
 import SwiftUI
 
 struct HomeView: View {
-    @State private var allPantryItems: [String] = [
-        "chicken", "basil", "salt", "flour", "paprika", "kiwis", "milk", "matcha",
-        "tomatoes", "olive oil", "sugar", "pepper", "sesame oil", "soda"
-    ]
+    @EnvironmentObject var viewModel: AuthViewModel
+    @EnvironmentObject var ingredientsManager: IngredientsManager
+    @StateObject private var recipeAPIManager = RecipeAPIManager()
     
     @State private var row1Items: [String] = []
     @State private var row2Items: [String] = []
-    
-    @EnvironmentObject var viewModel: AuthViewModel
-    @StateObject private var recipeAPIManager = RecipeAPIManager()
 
     var body: some View {
         NavigationStack {
@@ -33,9 +29,11 @@ struct HomeView: View {
                     }
                     .background(Color.white)
                     .edgesIgnoringSafeArea(.all)
-                    .onAppear {
-                        splitPantryItems()
-                        recipeAPIManager.fetchRecipes(ingredients: allPantryItems)
+                    .task {  // Changed from .onAppear to .task
+                        // Fetch ingredients and update pantry items
+                        await ingredientsManager.fetchIngredients()
+                        splitPantryItems() // Call this after fetching ingredients
+                        await recipeAPIManager.fetchRecipes(ingredients: ingredientsManager.ingredients.map { $0.name })
                     }
                     .padding(.bottom, 60)
                 }
@@ -45,21 +43,20 @@ struct HomeView: View {
     }
 
     private func splitPantryItems() {
-        let midpoint = allPantryItems.count / 2
-        row1Items = Array(allPantryItems.prefix(midpoint))
-        row2Items = Array(allPantryItems.suffix(from: midpoint))
+        let midpoint = ingredientsManager.ingredients.count / 2
+        row1Items = ingredientsManager.ingredients.prefix(midpoint).map { $0.name }
+        row2Items = ingredientsManager.ingredients.suffix(from: midpoint).map { $0.name }
     }
 }
 
 struct HeaderView: View {
-    @EnvironmentObject var viewModel: AuthViewModel // Add this line to access the viewModel
+    @EnvironmentObject var viewModel: AuthViewModel
 
     var body: some View {
         HStack {
             VStack(alignment: .leading) {
-                // Safely unwrap user name
                 if let user = viewModel.currentUser {
-                    Text("Hi, \(user.fullname)") // Use string interpolation
+                    Text("Hi, \(user.fullname)")
                         .font(.custom("Cochin", size: 25))
                         .fontWeight(.bold)
                         .foregroundColor(.black)
@@ -171,7 +168,7 @@ struct RecommendedRecipesView: View {
 
             LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 20) {
                 ForEach(recipes) { recipe in
-                    NavigationLink(destination: RecipeDetailView(recipe: recipe.title)) {
+                    NavigationLink(destination: RecipeDetailView(recipeId: recipe.id)) {
                         RecipeCard(recipe: recipe.title, image: recipe.image) // Pass the image to the RecipeCard
                     }
                 }
@@ -227,23 +224,10 @@ struct RecipeCard: View {
 }
 
 
-struct RecipeDetailView: View {
-    var recipe: String
-
-    var body: some View {
-        VStack {
-            Text("Full Recipe for \(recipe)")
-                .font(.largeTitle)
-            Spacer()
-        }
-        .padding()
-        .navigationTitle(recipe)
-    }
-}
-
 struct HomeView_Previews: PreviewProvider {
     static var previews: some View {
-        HomeView().environmentObject(AuthViewModel()) // Provide a mock AuthViewModel for preview
+        HomeView().environmentObject(AuthViewModel())
+            .environmentObject(IngredientsManager(recipeAPIManager: RecipeAPIManager())) // Provide a mock AuthViewModel for preview
     }
 }
 

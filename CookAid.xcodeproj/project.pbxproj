@@ -36,6 +36,9 @@
 		AC8AB15D2D041564001A0FF4 /* EditProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC8AB15C2D041564001A0FF4 /* EditProfileView.swift */; };
 		AC8AB15F2D081857001A0FF4 /* RecipeAPIManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC8AB15E2D081857001A0FF4 /* RecipeAPIManager.swift */; };
 		AC8AB1612D081878001A0FF4 /* Recipe.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC8AB1602D081878001A0FF4 /* Recipe.swift */; };
+		AC8AB1632D0823FB001A0FF4 /* RecipeIngredient.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC8AB1622D0823FB001A0FF4 /* RecipeIngredient.swift */; };
+		AC8AB1652D082418001A0FF4 /* RecipeDetail.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC8AB1642D082418001A0FF4 /* RecipeDetail.swift */; };
+		AC8AB1672D08283D001A0FF4 /* Measures.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC8AB1662D08283D001A0FF4 /* Measures.swift */; };
 		AC8E4B602CBC33D800A7475C /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = AC8E4B5F2CBC33D700A7475C /* GoogleService-Info.plist */; };
 		AC8E4B632CBC368B00A7475C /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = AC8E4B622CBC368B00A7475C /* FirebaseAnalytics */; };
 		AC8E4B652CBC368B00A7475C /* FirebaseAnalyticsOnDeviceConversion in Frameworks */ = {isa = PBXBuildFile; productRef = AC8E4B642CBC368B00A7475C /* FirebaseAnalyticsOnDeviceConversion */; };
@@ -100,6 +103,9 @@
 		AC8AB15C2D041564001A0FF4 /* EditProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditProfileView.swift; sourceTree = "<group>"; };
 		AC8AB15E2D081857001A0FF4 /* RecipeAPIManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeAPIManager.swift; sourceTree = "<group>"; };
 		AC8AB1602D081878001A0FF4 /* Recipe.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Recipe.swift; sourceTree = "<group>"; };
+		AC8AB1622D0823FB001A0FF4 /* RecipeIngredient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeIngredient.swift; sourceTree = "<group>"; };
+		AC8AB1642D082418001A0FF4 /* RecipeDetail.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeDetail.swift; sourceTree = "<group>"; };
+		AC8AB1662D08283D001A0FF4 /* Measures.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Measures.swift; sourceTree = "<group>"; };
 		AC8E4B5F2CBC33D700A7475C /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = "GoogleService-Info.plist"; path = "../../../../Downloads/GoogleService-Info.plist"; sourceTree = "<group>"; };
 		AC8E4B962CBC48A200A7475C /* FirebaseManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirebaseManager.swift; sourceTree = "<group>"; };
 		ACB3418A2CD05A800029FC2E /* InputView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputView.swift; sourceTree = "<group>"; };
@@ -233,6 +239,9 @@
 				AC76CA1E2D017CCC001540AF /* Ingredient.swift */,
 				AC8AB1562D040A64001A0FF4 /* GroceryItem.swift */,
 				AC8AB1602D081878001A0FF4 /* Recipe.swift */,
+				AC8AB1622D0823FB001A0FF4 /* RecipeIngredient.swift */,
+				AC8AB1642D082418001A0FF4 /* RecipeDetail.swift */,
+				AC8AB1662D08283D001A0FF4 /* Measures.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -401,12 +410,15 @@
 				AC8AB15D2D041564001A0FF4 /* EditProfileView.swift in Sources */,
 				AC8AB1552D03D20D001A0FF4 /* AppDelegate.swift in Sources */,
 				AC76CA272D02AD2A001540AF /* EditIngredientView.swift in Sources */,
+				AC8AB1672D08283D001A0FF4 /* Measures.swift in Sources */,
 				AC4FD69B2CBAD3D40093A7DC /* RecommenderView.swift in Sources */,
 				AC8AB15F2D081857001A0FF4 /* RecipeAPIManager.swift in Sources */,
+				AC8AB1632D0823FB001A0FF4 /* RecipeIngredient.swift in Sources */,
 				AC4FD69D2CBAD3E80093A7DC /* ProfileView.swift in Sources */,
 				AC4FD6A32CBAD5AD0093A7DC /* TabBarButton.swift in Sources */,
 				AC4FD69F2CBAD41C0093A7DC /* MyRecipeView.swift in Sources */,
 				AC8AB1592D040A99001A0FF4 /* GroceryManager.swift in Sources */,
+				AC8AB1652D082418001A0FF4 /* RecipeDetail.swift in Sources */,
 				AC4FD6A92CBBA6D40093A7DC /* GroceryView.swift in Sources */,
 				ACB3418B2CD05A800029FC2E /* InputView.swift in Sources */,
 				AC7597762CB90C890047D091 /* CookAidApp.swift in Sources */,

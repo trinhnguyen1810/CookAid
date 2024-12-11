@@ -2,6 +2,7 @@ import SwiftUI
 
 struct GroceryView: View {
     @StateObject private var groceryManager = GroceryManager() // Use GroceryManager
+    @StateObject private var ingredientsManager = IngredientsManager()
     @State private var searchText: String = ""
     @State private var showAddGrocery = false // State to show the add grocery view
     @State private var showDeleteAlert = false // State to show delete confirmation alert
@@ -144,9 +145,10 @@ struct GroceryView: View {
     private func addToPantry(_ item: GroceryItem) {
         let newIngredient = Ingredient(id: item.id, name: item.name, dateBought: Date(), category: item.category)
         // Add to pantry using IngredientsManager
-        let ingredientsManager = IngredientsManager() // Create an instance of IngredientsManager
-        ingredientsManager.addIngredient(newIngredient) // Add to pantry
-        deleteGroceryItem(item) // Remove from grocery list
+        Task {
+            await ingredientsManager.addIngredient(newIngredient) // Add await here
+            deleteGroceryItem(item) // This will run after the ingredient is added
+        }// Remove from grocery list
     }
 }
 

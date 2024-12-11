@@ -14,7 +14,7 @@ class RecipeAPIManager: ObservableObject {
         components.queryItems = [
             URLQueryItem(name: "apiKey", value: "f1c8e26a6f554159ab2714022bbee9c7"),
             URLQueryItem(name: "ingredients", value: ingredientsString),
-            URLQueryItem(name: "number", value: "1"),
+            URLQueryItem(name: "number", value: "8"),
             URLQueryItem(name: "ignorePantry", value: "true")
         ]
         

@@ -1,7 +1,6 @@
 import SwiftUI
 
 struct PantryView: View {
-    // Sample list of ingredients
     @StateObject private var ingredientsManager = IngredientsManager()
     @State private var showAddIngredient = false
     @State private var searchText: String = ""
@@ -84,7 +83,7 @@ struct PantryView: View {
                         .padding(.top, 10)
                         
                         // Define custom order for categories
-                        let customOrder = ["Proteins", "Dairy & Dairy Alternatives", "Grains and Legumes", "Fruits & Vegetables", "Spices, Seasonings and Herbs", "Sauces and Condiments", "Cooking Essentials","Others"]
+                        let customOrder = ["Proteins", "Dairy & Dairy Alternatives", "Grains and Legumes", "Fruits & Vegetables", "Spices, Seasonings and Herbs", "Sauces and Condiments", "Cooking Essentials", "Others"]
 
                         // Displaying ingredients by category
                         let groupedIngredients = Dictionary(grouping: ingredientsManager.ingredients.filter { ingredient in
@@ -153,8 +152,6 @@ struct PantryView: View {
                     .italic()
                     .foregroundColor(.gray)
                     .padding(.top, 2)
-
-                // Removed the Edit button; the card itself is tappable
             }
             .padding()
             .frame(maxWidth: .infinity)

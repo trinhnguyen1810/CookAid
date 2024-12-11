@@ -7,8 +7,8 @@ struct AddIngredientView: View {
     @Binding var ingredients: [Ingredient] // Binding to update the pantry
     @State private var name: String = ""
     @Environment(\.presentationMode) var presentationMode
-    @State private var category: String = ""
-    @State private var dateBought: Date? // Keep as Date?
+    @State private var category: String = "Others"
+    @State private var dateBought: Date? = Date()
     @State private var categories = ["Proteins", "Dairy & Dairy Alternatives", "Grains and Legumes", "Fruits & Vegetables", "Spices, Seasonings and Herbs", "Sauces and Condiments", "Cooking Essentials", "Others"]
 
     var body: some View {
