@@ -17,7 +17,7 @@ struct ContentView: View {
                         case .pantry:
                             PantryView()
                         case .recommender:
-                            RecommenderView()
+                            MealPlannerView()
                         case .recipes:
                             Text("Recipes View")
                         case .profile:

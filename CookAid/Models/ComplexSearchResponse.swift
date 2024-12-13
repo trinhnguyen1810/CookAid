@@ -6,3 +6,9 @@
 //
 
 import Foundation
+struct ComplexSearchResponse: Codable {
+    let results: [QuickRecipe]
+    let offset: Int
+    let number: Int
+    let totalResults: Int
+}

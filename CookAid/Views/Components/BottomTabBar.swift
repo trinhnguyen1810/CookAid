@@ -13,8 +13,8 @@ struct BottomTabBar: View {
                 PantryView().navigationBarBackButtonHidden() // Navigate to PantryView
             }
             Spacer()
-            TabBarButton(imageName: "sparkles", label: "Recommender") {
-                RecommenderView().navigationBarBackButtonHidden()
+            TabBarButton(imageName: "calendar", label: "Meal Plan") {
+                MealPlannerView().navigationBarBackButtonHidden()
             }
             Spacer()
             TabBarButton(imageName: "clipboard.fill", label: "Grocery") {

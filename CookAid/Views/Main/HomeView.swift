@@ -5,6 +5,7 @@ struct HomeView: View {
     @EnvironmentObject var ingredientsManager: IngredientsManager
     @StateObject private var recipeAPIManager = RecipeAPIManager()
     @State private var showingAddIngredientView = false
+    //@State private var quickMeals: [Recipe] = []
     
     @State private var row1Items: [String] = []
     @State private var row2Items: [String] = []
@@ -16,7 +17,6 @@ struct HomeView: View {
                     VStack {
                         HeaderView()
                         
-                        // Pass the state variable to MyPantryView
                         MyPantryView(row1Items: $row1Items, row2Items: $row2Items, showingAddIngredientView: $showingAddIngredientView)
                         
                         if let errorMessage = recipeAPIManager.errorMessage {
@@ -25,21 +25,18 @@ struct HomeView: View {
                                 .padding()
                         } else {
                             RecommendedRecipesView(recipes: recipeAPIManager.recipes)
+                            QuickRecipesView(quickrecipes: recipeAPIManager.quickrecipes)
                         }
-                        
-                        Spacer()
+
                     }
                     .background(Color.white)
                     .edgesIgnoringSafeArea(.all)
                     .task {
-                        await ingredientsManager.fetchIngredients()
-                        splitPantryItems()
-                        await recipeAPIManager.fetchRecipes(ingredients: ingredientsManager.ingredients.map { $0.name })
+                        await loadData() // Call a separate function to load data
                     }
                     .onChange(of: ingredientsManager.ingredients.count) { _ in
-                        splitPantryItems()
                         Task {
-                            await recipeAPIManager.fetchRecipes(ingredients: ingredientsManager.ingredients.map { $0.name })
+                            await loadData() // Call a separate function to load data
                         }
                     }
                     .padding(.bottom, 60)
@@ -47,9 +44,18 @@ struct HomeView: View {
                 BottomTabBar()
             }
         }
-        .sheet(isPresented: $showingAddIngredientView) { // Corrected this line
-            AddIngredientView(ingredients: $ingredientsManager.ingredients) // Present the AddIngredientView
+        .sheet(isPresented: $showingAddIngredientView) {
+            AddIngredientView(ingredients: $ingredientsManager.ingredients)
         }
+    }
+
+    private func loadData() async {
+        await ingredientsManager.fetchIngredients()
+        splitPantryItems()
+        await recipeAPIManager.fetchRecipes(ingredients: ingredientsManager.ingredients.map { $0.name })
+        await recipeAPIManager.fetchQuickMeals(ingredients: ingredientsManager.ingredients.map { $0.name })
+
+       
     }
 
     private func splitPantryItems() {
@@ -89,7 +95,7 @@ struct HeaderView: View {
 struct MyPantryView: View {
     @Binding var row1Items: [String]
     @Binding var row2Items: [String]
-    @Binding var showingAddIngredientView: Bool // Add this line
+    @Binding var showingAddIngredientView: Bool
     
     var body: some View {
         VStack(alignment: .leading) {
@@ -143,7 +149,6 @@ struct MyPantryView: View {
 
 struct PantryItemsRow: View {
     var items: [String]
-    
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 10) {
@@ -181,7 +186,7 @@ struct RecommendedRecipesView: View {
             LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 20) {
                 ForEach(recipes) { recipe in
                     NavigationLink(destination: RecipeDetailView(recipeId: recipe.id)) {
-                        RecipeCard(recipe: recipe.title, image: recipe.image) // Pass the image to the RecipeCard
+                        RecipeCard(recipe: recipe.title, image: recipe.image)
                     }
                 }
             }
@@ -190,56 +195,36 @@ struct RecommendedRecipesView: View {
     }
 }
 
-struct RecipeCard: View {
-    var recipe: String
-    var image: String
-
+struct QuickRecipesView: View {
+    var quickrecipes: [QuickRecipe]
+    
     var body: some View {
-        VStack(alignment: .leading) {  // Changed to .leading alignment
-            AsyncImage(url: URL(string: image)) { image in
-                image
-                    .resizable()
-                    .scaledToFit()
-                    .frame(height: 120)  // Increased height from 100
-                    .cornerRadius(8)
-            } placeholder: {
-                Image(systemName: "photo")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(height: 120)  // Increased height from 100
-                    .foregroundColor(.black)
-                    .cornerRadius(8)
-            }
-            
-            Text(recipe)
-                .font(.custom("Cochin", size: 18))  // Increased from 15
-                .fontWeight(.medium)
+        VStack(alignment: .leading) {
+            Text("Quick Meals")
+                .font(.custom("Cochin", size: 20))
+                .fontWeight(.bold)
                 .foregroundColor(.black)
-                .lineLimit(2)
-                .truncationMode(.tail)
-                .multilineTextAlignment(.leading)
-                .frame(height: 50)  // Fixed height for text area
-                .frame(maxWidth: .infinity, alignment: .leading)
-
-            HStack {
-                Spacer()
-                Button(action: {
-                    // Handle 3 dots actions (add/delete/save)
-                }) {
-                    Image(systemName: "ellipsis")
-                        .foregroundColor(.black)
+                .padding(.top, 20)
+                .padding(.leading, 20)
+            
+            if quickrecipes.isEmpty {
+                Text("No quick meals available.")
+                    .foregroundColor(.gray)
+                    .padding(.leading, 20)
+            } else {
+                LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 20) {
+                    ForEach(quickrecipes) { recipe in
+                        NavigationLink(destination: RecipeDetailView(recipeId: recipe.id)) {
+                            RecipeCard(recipe: recipe.title, image: recipe.image)
+                        }
+                    }
                 }
+                .padding(.horizontal, 20)
             }
-            .padding(.top, 4)  // Reduced from 8 to accommodate larger text area
         }
-        .padding()
-        .background(Color.white)
-        .cornerRadius(8)
-        .frame(height: 220)  // Fixed total height
-        .frame(maxWidth: .infinity)
-        .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.black, lineWidth: 1))
     }
 }
+
 
 struct HomeView_Previews: PreviewProvider {
     static var previews: some View {

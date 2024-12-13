@@ -14,7 +14,7 @@ class RecipeAPIManager: ObservableObject {
         components.queryItems = [
             URLQueryItem(name: "apiKey", value: "8c097f2cc79d46ecb543f3b99e67ab04"),
             URLQueryItem(name: "ingredients", value: ingredientsString),
-            URLQueryItem(name: "number", value: "4"),
+            URLQueryItem(name: "number", value: "10"),
             URLQueryItem(name: "ignorePantry", value: "true")
         ]
         
@@ -66,7 +66,7 @@ class RecipeAPIManager: ObservableObject {
                 URLQueryItem(name: "apiKey", value: "8c097f2cc79d46ecb543f3b99e67ab04"),
                 URLQueryItem(name: "includeIngredients", value: ingredientsString),
                 URLQueryItem(name: "maxReadyTime", value: "\(maxReadyTime)"),
-                URLQueryItem(name: "number", value: "3")
+                URLQueryItem(name: "number", value: "10")
             ]
             
             guard let url = components.url else {

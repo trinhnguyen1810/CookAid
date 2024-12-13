@@ -147,8 +147,8 @@ struct GroceryView: View {
         // Add to pantry using IngredientsManager
         Task {
             await ingredientsManager.addIngredient(newIngredient) // Add await here
-            deleteGroceryItem(item) // This will run after the ingredient is added
-        }// Remove from grocery list
+            deleteGroceryItem(item) 
+        }
     }
 }
 
