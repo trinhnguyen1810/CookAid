@@ -4,8 +4,10 @@ struct HomeView: View {
     @EnvironmentObject var viewModel: AuthViewModel
     @EnvironmentObject var ingredientsManager: IngredientsManager
     @StateObject private var recipeAPIManager = RecipeAPIManager()
+    
+    @State private var searchText = ""
+    @State private var isSearching = false
     @State private var showingAddIngredientView = false
-    //@State private var quickMeals: [Recipe] = []
     
     @State private var row1Items: [String] = []
     @State private var row2Items: [String] = []
@@ -14,33 +16,40 @@ struct HomeView: View {
         NavigationStack {
             ZStack {
                 ScrollView {
-                    VStack {
+                    VStack(spacing: 0) {
+                        // Header with User Info
                         HeaderView()
                         
-                        MyPantryView(row1Items: $row1Items, row2Items: $row2Items, showingAddIngredientView: $showingAddIngredientView)
+                        // Search Bar
+                        searchBarView
                         
-                        if let errorMessage = recipeAPIManager.errorMessage {
-                            Text(errorMessage)
-                                .foregroundColor(.red)
-                                .padding()
+                        // Pantry View
+                        MyPantryView(
+                            row1Items: $row1Items,
+                            row2Items: $row2Items,
+                            showingAddIngredientView: $showingAddIngredientView
+                        )
+                        
+                        // Conditional Content
+                        if isSearching {
+                            searchResultsView
                         } else {
-                            RecommendedRecipesView(recipes: recipeAPIManager.recipes)
-                            QuickRecipesView(quickrecipes: recipeAPIManager.quickrecipes)
+                            defaultContentView
                         }
-
                     }
                     .background(Color.white)
                     .edgesIgnoringSafeArea(.all)
                     .task {
-                        await loadData() // Call a separate function to load data
+                        await loadData()
                     }
                     .onChange(of: ingredientsManager.ingredients.count) { _ in
                         Task {
-                            await loadData() // Call a separate function to load data
+                            await loadData()
                         }
                     }
                     .padding(.bottom, 60)
                 }
+                
                 BottomTabBar()
             }
         }
@@ -48,16 +57,99 @@ struct HomeView: View {
             AddIngredientView(ingredients: $ingredientsManager.ingredients)
         }
     }
-
+    
+    // Search Bar View
+    private var searchBarView: some View {
+        HStack {
+            Image(systemName: "magnifyingglass")
+                .foregroundColor(.gray)
+                .padding(.leading, 10)
+            
+            TextField("Search recipes", text: $searchText)
+                .font(.custom("Cochin", size: 17))
+                .onChange(of: searchText) { newValue in
+                    if newValue.count >= 3 {
+                        isSearching = true
+                        recipeAPIManager.searchRecipes(query: newValue)
+                    } else {
+                        isSearching = false
+                    }
+                }
+            
+            if !searchText.isEmpty {
+                Button(action: {
+                    searchText = ""
+                    isSearching = false
+                }) {
+                    Image(systemName: "xmark.circle.fill")
+                        .foregroundColor(.gray)
+                }
+                .padding(.trailing, 10)
+            }
+        }
+        .frame(height: 50)
+        .background(Color.gray.opacity(0.1))
+        .cornerRadius(10)
+        .padding(.horizontal, 20)
+        .padding(.vertical, 10)
+    }
+    
+    // Search Results View
+    private var searchResultsView: some View {
+        VStack(alignment: .leading) {
+            Text("Search Results")
+                .font(.custom("Cochin", size: 20))
+                .fontWeight(.bold)
+                .foregroundColor(.black)
+                .padding(.top, 20)
+                .padding(.leading, 20)
+            
+            if recipeAPIManager.isLoading {
+                ProgressView()
+                    .frame(maxWidth: .infinity)
+                    .padding()
+            } else if recipeAPIManager.searchResults.isEmpty {
+                Text("No recipes found")
+                    .foregroundColor(.gray)
+                    .padding(.leading, 20)
+            } else {
+                LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 20) {
+                    ForEach(recipeAPIManager.searchResults) { recipe in
+                        NavigationLink(destination: RecipeDetailView(recipeId: recipe.id)) {
+                            RecipeCard(recipe: recipe.title, image: recipe.image)
+                        }
+                    }
+                }
+                .padding(.horizontal, 20)
+            }
+        }
+    }
+    
+    // Default Home Content View
+    private var defaultContentView: some View {
+        VStack {
+            if let errorMessage = recipeAPIManager.errorMessage {
+                Text(errorMessage)
+                    .foregroundColor(.red)
+                    .padding()
+            } else {
+                RecommendedRecipesView(recipes: recipeAPIManager.recipes)
+                QuickRecipesView(quickrecipes: recipeAPIManager.quickrecipes)
+            }
+        }
+    }
+    
     private func loadData() async {
         await ingredientsManager.fetchIngredients()
         splitPantryItems()
-        await recipeAPIManager.fetchRecipes(ingredients: ingredientsManager.ingredients.map { $0.name })
-        await recipeAPIManager.fetchQuickMeals(ingredients: ingredientsManager.ingredients.map { $0.name })
-
-       
+        
+        // Only load these if not searching
+        if !isSearching {
+            await recipeAPIManager.fetchRecipes(ingredients: ingredientsManager.ingredients.map { $0.name })
+            await recipeAPIManager.fetchQuickMeals(ingredients: ingredientsManager.ingredients.map { $0.name })
+        }
     }
-
+    
     private func splitPantryItems() {
         let midpoint = ingredientsManager.ingredients.count / 2
         row1Items = ingredientsManager.ingredients.prefix(midpoint).map { $0.name }
