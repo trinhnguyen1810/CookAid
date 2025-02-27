@@ -1,3 +1,4 @@
+
 import Foundation
 import Combine
 
@@ -9,17 +10,29 @@ class RecipeAPIManager: ObservableObject {
     @Published var isLoading: Bool = false
     
     @MainActor
-    func fetchRecipes(ingredients: [String]) {
+    func fetchRecipes(ingredients: [String], diets: [String] = [], intolerances: [String] = []) {
         let ingredientsString = ingredients.joined(separator: ",")
         
         var components = URLComponents(string: "https://api.spoonacular.com/recipes/findByIngredients")!
-        components.queryItems = [
+        var queryItems: [URLQueryItem] = [
             URLQueryItem(name: "apiKey", value: "8c097f2cc79d46ecb543f3b99e67ab04"),
             URLQueryItem(name: "ingredients", value: ingredientsString),
             URLQueryItem(name: "number", value: "2"),
             URLQueryItem(name: "ignorePantry", value: "true")
         ]
+
+        if !diets.isEmpty {
+            let dietString = diets.joined(separator: ",")
+            queryItems.append(URLQueryItem(name: "diet", value: dietString))
+        }
         
+        if !intolerances.isEmpty {
+            let intolerancesString = intolerances.joined(separator: ",")
+            queryItems.append(URLQueryItem(name: "intolerances", value: intolerancesString))
+        }
+        
+        components.queryItems = queryItems
+
         guard let url = components.url else {
             self.errorMessage = "Invalid URL"
             return
@@ -56,17 +69,29 @@ class RecipeAPIManager: ObservableObject {
     }
     
     @MainActor
-    func fetchQuickMeals(ingredients: [String]) {
+    func fetchQuickMeals(ingredients: [String], diets: [String] = [], intolerances: [String] = []) {
         let ingredientsString = ingredients.joined(separator: ",")
         let maxReadyTime = 30
         
         var components = URLComponents(string: "https://api.spoonacular.com/recipes/complexSearch")!
-        components.queryItems = [
+        var queryItems: [URLQueryItem] = [
             URLQueryItem(name: "apiKey", value: "8c097f2cc79d46ecb543f3b99e67ab04"),
             URLQueryItem(name: "includeIngredients", value: ingredientsString),
             URLQueryItem(name: "maxReadyTime", value: "\(maxReadyTime)"),
             URLQueryItem(name: "number", value: "2")
         ]
+              
+        if !diets.isEmpty {
+            let dietString = diets.joined(separator: ",")
+            queryItems.append(URLQueryItem(name: "diet", value: dietString))
+        }
+        
+        if !intolerances.isEmpty {
+            let intolerancesString = intolerances.joined(separator: ",")
+            queryItems.append(URLQueryItem(name: "intolerances", value: intolerancesString))
+        }
+        
+        components.queryItems = queryItems
         
         guard let url = components.url else {
             errorMessage = "Invalid URL"
@@ -104,20 +129,32 @@ class RecipeAPIManager: ObservableObject {
     }
     
     @MainActor
-    func searchRecipes(query: String) {
+    func searchRecipes(query: String, diets: [String] = [], intolerances: [String] = []) {
         // Reset search results
         self.searchResults = []
         self.isLoading = true
         self.errorMessage = nil
         
         var components = URLComponents(string: "https://api.spoonacular.com/recipes/complexSearch")!
-        components.queryItems = [
+        var queryItems: [URLQueryItem] = [
             URLQueryItem(name: "apiKey", value: "8c097f2cc79d46ecb543f3b99e67ab04"),
             URLQueryItem(name: "query", value: query),
             URLQueryItem(name: "number", value: "10"),
             URLQueryItem(name: "addRecipeInformation", value: "true")
         ]
         
+        if !diets.isEmpty {
+            let dietString = diets.joined(separator: ",")
+            queryItems.append(URLQueryItem(name: "diet", value: dietString))
+        }
+        
+        if !intolerances.isEmpty {
+            let intolerancesString = intolerances.joined(separator: ",")
+            queryItems.append(URLQueryItem(name: "intolerances", value: intolerancesString))
+        }
+        
+        components.queryItems = queryItems
+
         guard let url = components.url else {
             self.errorMessage = "Invalid URL"
             self.isLoading = false

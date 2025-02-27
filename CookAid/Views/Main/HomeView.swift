@@ -8,6 +8,9 @@ struct HomeView: View {
     @State private var searchText = ""
     @State private var isSearching = false
     @State private var showingAddIngredientView = false
+    @State private var selectedDiets: [String] = [] // Array for selected diets
+    @State private var selectedIntolerances: [String] = [] // Array for selected intolerances
+    @State private var showDietFilter = false // State for showing filter options
     
     @State private var row1Items: [String] = []
     @State private var row2Items: [String] = []
@@ -22,6 +25,46 @@ struct HomeView: View {
                         
                         // Search Bar
                         searchBarView
+                        
+                        // Filter Buttons
+                        FilterButtonsView(
+                            showDietFilter: $showDietFilter,
+                            dietCount: selectedDiets.count,
+                            intoleranceCount: selectedIntolerances.count
+                        )
+                        .padding(.top, 8)
+                        .padding(.bottom, 4)
+                        .frame(maxWidth: .infinity, alignment: .leading) // Align to the left
+
+                        // Replace the Filter Chips View section:
+                        // Filter Chips View - Show only when filters are active
+                        if !selectedDiets.isEmpty || !selectedIntolerances.isEmpty {
+                            FilterChipsView(
+                                diets: selectedDiets,
+                                intolerances: selectedIntolerances,
+                                onRemoveDiet: { diet in
+                                    selectedDiets.removeAll { $0 == diet }
+                                    Task {
+                                        await loadData()
+                                    }
+                                },
+                                onRemoveIntolerance: { intolerance in
+                                    selectedIntolerances.removeAll { $0 == intolerance }
+                                    Task {
+                                        await loadData()
+                                    }
+                                },
+                                onClearAll: {
+                                    selectedDiets.removeAll()
+                                    selectedIntolerances.removeAll()
+                                    Task {
+                                        await loadData()
+                                    }
+                                }
+                            )
+                            .padding(.bottom, 8)
+                            .frame(maxWidth: .infinity, alignment: .leading) // Align to the left
+                        }
                         
                         // Pantry View
                         MyPantryView(
@@ -47,6 +90,16 @@ struct HomeView: View {
                             await loadData()
                         }
                     }
+                    .onChange(of: selectedDiets) { _ in
+                        Task {
+                            await loadData()
+                        }
+                    }
+                    .onChange(of: selectedIntolerances) { _ in
+                        Task {
+                            await loadData()
+                        }
+                    }
                     .padding(.bottom, 60)
                 }
                 
@@ -55,6 +108,12 @@ struct HomeView: View {
         }
         .sheet(isPresented: $showingAddIngredientView) {
             AddIngredientView(ingredients: $ingredientsManager.ingredients)
+        }
+        .sheet(isPresented: $showDietFilter) {
+            DietFilterView(
+                selectedDiets: $selectedDiets,
+                selectedIntolerances: $selectedIntolerances
+            )
         }
     }
     
@@ -70,7 +129,11 @@ struct HomeView: View {
                 .onChange(of: searchText) { newValue in
                     if newValue.count >= 3 {
                         isSearching = true
-                        recipeAPIManager.searchRecipes(query: newValue)
+                        recipeAPIManager.searchRecipes(
+                            query: newValue,
+                            diets: selectedDiets.map { formatForAPI($0) },
+                            intolerances: selectedIntolerances.map { formatForAPI($0) }
+                        )
                     } else {
                         isSearching = false
                     }
@@ -93,7 +156,7 @@ struct HomeView: View {
         .padding(.horizontal, 20)
         .padding(.vertical, 10)
     }
-    
+
     // Search Results View
     private var searchResultsView: some View {
         VStack(alignment: .leading) {
@@ -145,9 +208,22 @@ struct HomeView: View {
         
         // Only load these if not searching
         if !isSearching {
-            await recipeAPIManager.fetchRecipes(ingredients: ingredientsManager.ingredients.map { $0.name })
-            await recipeAPIManager.fetchQuickMeals(ingredients: ingredientsManager.ingredients.map { $0.name })
+            await recipeAPIManager.fetchRecipes(
+                ingredients: ingredientsManager.ingredients.map { $0.name },
+                diets: selectedDiets.map { formatForAPI($0) },
+                intolerances: selectedIntolerances.map { formatForAPI($0) }
+            )
+            await recipeAPIManager.fetchQuickMeals(
+                ingredients: ingredientsManager.ingredients.map { $0.name },
+                diets: selectedDiets.map { formatForAPI($0) },
+                intolerances: selectedIntolerances.map { formatForAPI($0) }
+            )
         }
+    }
+    
+    private func formatForAPI(_ string: String) -> String {
+        // Convert "Gluten Free" to "gluten-free" for API
+        return string.lowercased().replacingOccurrences(of: " ", with: "-")
     }
     
     private func splitPantryItems() {
@@ -156,7 +232,6 @@ struct HomeView: View {
         row2Items = ingredientsManager.ingredients.suffix(from: midpoint).map { $0.name }
     }
 }
-
 struct HeaderView: View {
     @EnvironmentObject var viewModel: AuthViewModel
 

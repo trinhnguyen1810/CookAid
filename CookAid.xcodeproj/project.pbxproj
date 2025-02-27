@@ -16,6 +16,8 @@
 		AC4FD6A32CBAD5AD0093A7DC /* TabBarButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC4FD6A22CBAD5AD0093A7DC /* TabBarButton.swift */; };
 		AC4FD6A72CBB9DA00093A7DC /* RecipeDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC4FD6A62CBB9DA00093A7DC /* RecipeDetailView.swift */; };
 		AC4FD6A92CBBA6D40093A7DC /* GroceryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC4FD6A82CBBA6D40093A7DC /* GroceryView.swift */; };
+		AC594CBB2D70943700B5CE63 /* DietFilterView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC594CBA2D70943700B5CE63 /* DietFilterView.swift */; };
+		AC594CBD2D7099C800B5CE63 /* DietChipView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC594CBC2D7099C800B5CE63 /* DietChipView.swift */; };
 		AC7597762CB90C890047D091 /* CookAidApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC7597752CB90C890047D091 /* CookAidApp.swift */; };
 		AC7597782CB90C8A0047D091 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC7597772CB90C890047D091 /* ContentView.swift */; };
 		AC75977A2CB90C8C0047D091 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AC7597792CB90C8C0047D091 /* Assets.xcassets */; };
@@ -86,6 +88,8 @@
 		AC4FD6A22CBAD5AD0093A7DC /* TabBarButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabBarButton.swift; sourceTree = "<group>"; };
 		AC4FD6A62CBB9DA00093A7DC /* RecipeDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeDetailView.swift; sourceTree = "<group>"; };
 		AC4FD6A82CBBA6D40093A7DC /* GroceryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroceryView.swift; sourceTree = "<group>"; };
+		AC594CBA2D70943700B5CE63 /* DietFilterView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DietFilterView.swift; sourceTree = "<group>"; };
+		AC594CBC2D7099C800B5CE63 /* DietChipView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DietChipView.swift; sourceTree = "<group>"; };
 		AC7597722CB90C890047D091 /* CookAid.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CookAid.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		AC7597752CB90C890047D091 /* CookAidApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CookAidApp.swift; sourceTree = "<group>"; };
 		AC7597772CB90C890047D091 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -215,6 +219,7 @@
 			isa = PBXGroup;
 			children = (
 				AC7597772CB90C890047D091 /* ContentView.swift */,
+				AC594CBC2D7099C800B5CE63 /* DietChipView.swift */,
 				AC75978A2CB90E220047D091 /* HomeView.swift */,
 				AC4FD6962CBAB4C20093A7DC /* PantryView.swift */,
 				AC4FD6A82CBBA6D40093A7DC /* GroceryView.swift */,
@@ -229,6 +234,7 @@
 				AC8AB15A2D040AD9001A0FF4 /* AddGroceryView.swift */,
 				AC8AB15C2D041564001A0FF4 /* EditProfileView.swift */,
 				ACA759152D0A79D400690CE7 /* MealPlannerView.swift */,
+				AC594CBA2D70943700B5CE63 /* DietFilterView.swift */,
 			);
 			path = Main;
 			sourceTree = "<group>";
@@ -407,8 +413,10 @@
 			files = (
 				ACB3418F2CD0A4020029FC2E /* AuthViewModel.swift in Sources */,
 				AC75978F2CB90E700047D091 /* NewRecipeView.swift in Sources */,
+				AC594CBD2D7099C800B5CE63 /* DietChipView.swift in Sources */,
 				AC8AB1572D040A64001A0FF4 /* GroceryItem.swift in Sources */,
 				AC76CA1F2D017CCC001540AF /* Ingredient.swift in Sources */,
+				AC594CBB2D70943700B5CE63 /* DietFilterView.swift in Sources */,
 				AC76CA212D017E6B001540AF /* AddIngredientView.swift in Sources */,
 				AC75978B2CB90E220047D091 /* HomeView.swift in Sources */,
 				AC4FD6A12CBAD5830093A7DC /* BottomTabBar.swift in Sources */,
