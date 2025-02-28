@@ -179,7 +179,7 @@ struct HomeView: View {
                 LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 20) {
                     ForEach(recipeAPIManager.searchResults) { recipe in
                         NavigationLink(destination: RecipeDetailView(recipeId: recipe.id)) {
-                            RecipeCard(recipe: recipe.title, image: recipe.image)
+                            RecipeCard(recipe: recipe.title, image: recipe.image, recipeId: recipe.id)
                         }
                     }
                 }
@@ -337,9 +337,8 @@ struct PantryItemsRow: View {
         }
     }
 }
-
 struct RecommendedRecipesView: View {
-    var recipes: [Recipe] // Accept recipes as a parameter
+    var recipes: [Recipe]
 
     var body: some View {
         VStack(alignment: .leading) {
@@ -353,7 +352,7 @@ struct RecommendedRecipesView: View {
             LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 20) {
                 ForEach(recipes) { recipe in
                     NavigationLink(destination: RecipeDetailView(recipeId: recipe.id)) {
-                        RecipeCard(recipe: recipe.title, image: recipe.image)
+                        RecipeCard(recipe: recipe.title, image: recipe.image, recipeId: recipe.id)
                     }
                 }
             }
@@ -361,7 +360,6 @@ struct RecommendedRecipesView: View {
         }
     }
 }
-
 struct QuickRecipesView: View {
     var quickrecipes: [QuickRecipe]
     
@@ -382,7 +380,7 @@ struct QuickRecipesView: View {
                 LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 20) {
                     ForEach(quickrecipes) { recipe in
                         NavigationLink(destination: RecipeDetailView(recipeId: recipe.id)) {
-                            RecipeCard(recipe: recipe.title, image: recipe.image)
+                            RecipeCard(recipe: recipe.title, image: recipe.image, recipeId: recipe.id)
                         }
                     }
                 }
@@ -391,7 +389,6 @@ struct QuickRecipesView: View {
         }
     }
 }
-
 
 struct HomeView_Previews: PreviewProvider {
     static var previews: some View {

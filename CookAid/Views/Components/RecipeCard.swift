@@ -1,16 +1,12 @@
-//
-//  RecipeCard.swift
-//  CookAid
-//
-//  Created by Vivian Nguyen on 12/11/24.
-//
-
-import Foundation
 import SwiftUI
 
 struct RecipeCard: View {
     var recipe: String
     var image: String
+    var recipeId: Int
+    
+    @State private var showingAddToCollectionSheet = false
+    @EnvironmentObject var collectionsManager: CollectionsManager // Changed to EnvironmentObject
     
     var body: some View {
         VStack(alignment: .leading) {
@@ -42,7 +38,7 @@ struct RecipeCard: View {
             HStack {
                 Spacer()
                 Button(action: {
-                    // Handle 3 dots actions (add/delete/save)
+                    showingAddToCollectionSheet = true
                 }) {
                     Image(systemName: "ellipsis")
                         .foregroundColor(.black)
@@ -56,5 +52,44 @@ struct RecipeCard: View {
         .frame(height: 220)
         .frame(maxWidth: .infinity)
         .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.black, lineWidth: 1))
+        .sheet(isPresented: $showingAddToCollectionSheet) {
+            AddToCollectionView(
+                collectionsManager: collectionsManager,
+                recipe: QuickRecipe(
+                    id: recipeId,
+                    title: recipe,
+                    image: image,
+                    imageType: "jpg"
+                )
+            )
+        }
+    }
+    
+    // Additional initializer with default recipeId
+    init(recipe: String, image: String) {
+        self.recipe = recipe
+        self.image = image
+        self.recipeId = 0 // Default value
+    }
+    
+    // Original initializer with all parameters
+    init(recipe: String, image: String, recipeId: Int) {
+        self.recipe = recipe
+        self.image = image
+        self.recipeId = recipeId
+    }
+}
+
+// Preview for RecipeCard
+struct RecipeCard_Previews: PreviewProvider {
+    static var previews: some View {
+        RecipeCard(
+            recipe: "Delicious Chocolate Cake",
+            image: "https://example.com/cake-image.jpg",
+            recipeId: 1234
+        )
+        .environmentObject(CollectionsManager()) // Add this for preview
+        .previewLayout(.sizeThatFits)
+        .padding()
     }
 }

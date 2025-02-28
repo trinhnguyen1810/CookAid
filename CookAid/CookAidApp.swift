@@ -5,6 +5,7 @@ import Firebase
 struct CookAidApp: App {
     @StateObject var viewModel = AuthViewModel()
     @StateObject private var ingredientsManager = IngredientsManager()
+    @StateObject private var collectionsManager = CollectionsManager() // Add this line
     
     @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     
@@ -13,7 +14,7 @@ struct CookAidApp: App {
             ContentView()
                 .environmentObject(viewModel)
                 .environmentObject(ingredientsManager)
+                .environmentObject(collectionsManager) // Add this line
         }
     }
 }
-
