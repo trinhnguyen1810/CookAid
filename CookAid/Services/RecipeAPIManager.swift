@@ -1,4 +1,3 @@
-
 import Foundation
 import Combine
 
@@ -9,39 +8,41 @@ class RecipeAPIManager: ObservableObject {
     @Published var errorMessage: String? = nil
     @Published var isLoading: Bool = false
     
+    // RapidAPI headers
+    private let headers: [String: String] = [
+        "x-rapidapi-key": "98b3e1fa50mshc692e9435ce549bp1a91aajsn27f97bf0ac6d",
+        "x-rapidapi-host": "spoonacular-recipe-food-nutrition-v1.p.rapidapi.com"
+    ]
+    
     @MainActor
     func fetchRecipes(ingredients: [String], diets: [String] = [], intolerances: [String] = []) {
-        let ingredientsString = ingredients.joined(separator: ",")
+        let ingredientsString = ingredients.joined(separator: "%2C")
         
-        var components = URLComponents(string: "https://api.spoonacular.com/recipes/findByIngredients")!
-        var queryItems: [URLQueryItem] = [
-            URLQueryItem(name: "apiKey", value: "8c097f2cc79d46ecb543f3b99e67ab04"),
-            URLQueryItem(name: "ingredients", value: ingredientsString),
-            URLQueryItem(name: "number", value: "2"),
-            URLQueryItem(name: "ignorePantry", value: "true")
-        ]
-
-        if !diets.isEmpty {
-            let dietString = diets.joined(separator: ",")
-            queryItems.append(URLQueryItem(name: "diet", value: dietString))
-        }
-        
-        if !intolerances.isEmpty {
-            let intolerancesString = intolerances.joined(separator: ",")
-            queryItems.append(URLQueryItem(name: "intolerances", value: intolerancesString))
-        }
-        
-        components.queryItems = queryItems
-
-        guard let url = components.url else {
+        guard var urlComponents = URLComponents(string: "https://spoonacular-recipe-food-nutrition-v1.p.rapidapi.com/recipes/findByIngredients") else {
             self.errorMessage = "Invalid URL"
             return
         }
         
+        urlComponents.queryItems = [
+            URLQueryItem(name: "ingredients", value: ingredientsString),
+            URLQueryItem(name: "number", value: "5"),
+            URLQueryItem(name: "ignorePantry", value: "true"),
+            URLQueryItem(name: "ranking", value: "1")
+        ]
+        
+        guard let url = urlComponents.url else {
+            self.errorMessage = "Invalid URL"
+            return
+        }
+        
+        var request = URLRequest(url: url, cachePolicy: .useProtocolCachePolicy, timeoutInterval: 10.0)
+        request.httpMethod = "GET"
+        request.allHTTPHeaderFields = headers
+        
         isLoading = true
         errorMessage = nil
         
-        URLSession.shared.dataTask(with: url) { [weak self] data, response, error in
+        URLSession.shared.dataTask(with: request) { [weak self] data, response, error in
             guard let self = self else { return }
             
             DispatchQueue.main.async {
@@ -63,6 +64,10 @@ class RecipeAPIManager: ObservableObject {
                     self.errorMessage = nil
                 } catch {
                     self.errorMessage = "Error decoding recipes: \(error.localizedDescription)"
+                    // Print raw JSON for debugging
+                    if let jsonString = String(data: data, encoding: .utf8) {
+                        print("Raw JSON Response: \(jsonString)")
+                    }
                 }
             }
         }.resume()
@@ -70,38 +75,42 @@ class RecipeAPIManager: ObservableObject {
     
     @MainActor
     func fetchQuickMeals(ingredients: [String], diets: [String] = [], intolerances: [String] = []) {
-        let ingredientsString = ingredients.joined(separator: ",")
-        let maxReadyTime = 30
+        let ingredientsString = ingredients.joined(separator: "%2C")
         
-        var components = URLComponents(string: "https://api.spoonacular.com/recipes/complexSearch")!
-        var queryItems: [URLQueryItem] = [
-            URLQueryItem(name: "apiKey", value: "8c097f2cc79d46ecb543f3b99e67ab04"),
+        guard var urlComponents = URLComponents(string: "https://spoonacular-recipe-food-nutrition-v1.p.rapidapi.com/recipes/searchComplex") else {
+            self.errorMessage = "Invalid URL"
+            return
+        }
+        
+        urlComponents.queryItems = [
             URLQueryItem(name: "includeIngredients", value: ingredientsString),
-            URLQueryItem(name: "maxReadyTime", value: "\(maxReadyTime)"),
-            URLQueryItem(name: "number", value: "2")
+            URLQueryItem(name: "maxReadyTime", value: "30"),
+            URLQueryItem(name: "number", value: "5"),
+            URLQueryItem(name: "ranking", value: "2")
         ]
-              
+        
+        // Add optional diet and intolerances
         if !diets.isEmpty {
-            let dietString = diets.joined(separator: ",")
-            queryItems.append(URLQueryItem(name: "diet", value: dietString))
+            urlComponents.queryItems?.append(URLQueryItem(name: "diet", value: diets.joined(separator: "%2C")))
         }
         
         if !intolerances.isEmpty {
-            let intolerancesString = intolerances.joined(separator: ",")
-            queryItems.append(URLQueryItem(name: "intolerances", value: intolerancesString))
+            urlComponents.queryItems?.append(URLQueryItem(name: "intolerances", value: intolerances.joined(separator: "%2C")))
         }
         
-        components.queryItems = queryItems
-        
-        guard let url = components.url else {
-            errorMessage = "Invalid URL"
+        guard let url = urlComponents.url else {
+            self.errorMessage = "Invalid URL"
             return
         }
+        
+        var request = URLRequest(url: url, cachePolicy: .useProtocolCachePolicy, timeoutInterval: 10.0)
+        request.httpMethod = "GET"
+        request.allHTTPHeaderFields = headers
         
         isLoading = true
         errorMessage = nil
         
-        URLSession.shared.dataTask(with: url) { [weak self] data, response, error in
+        URLSession.shared.dataTask(with: request) { [weak self] data, response, error in
             guard let self = self else { return }
             
             DispatchQueue.main.async {
@@ -123,6 +132,10 @@ class RecipeAPIManager: ObservableObject {
                     self.errorMessage = nil
                 } catch {
                     self.errorMessage = "Error decoding quick meals: \(error.localizedDescription)"
+                    // Print raw JSON for debugging
+                    if let jsonString = String(data: data, encoding: .utf8) {
+                        print("Raw JSON Response: \(jsonString)")
+                    }
                 }
             }
         }.resume()
@@ -135,35 +148,42 @@ class RecipeAPIManager: ObservableObject {
         self.isLoading = true
         self.errorMessage = nil
         
-        var components = URLComponents(string: "https://api.spoonacular.com/recipes/complexSearch")!
-        var queryItems: [URLQueryItem] = [
-            URLQueryItem(name: "apiKey", value: "8c097f2cc79d46ecb543f3b99e67ab04"),
-            URLQueryItem(name: "query", value: query),
-            URLQueryItem(name: "number", value: "10"),
-            URLQueryItem(name: "addRecipeInformation", value: "true")
-        ]
-        
-        if !diets.isEmpty {
-            let dietString = diets.joined(separator: ",")
-            queryItems.append(URLQueryItem(name: "diet", value: dietString))
-        }
-        
-        if !intolerances.isEmpty {
-            let intolerancesString = intolerances.joined(separator: ",")
-            queryItems.append(URLQueryItem(name: "intolerances", value: intolerancesString))
-        }
-        
-        components.queryItems = queryItems
-
-        guard let url = components.url else {
+        guard var urlComponents = URLComponents(string: "https://spoonacular-recipe-food-nutrition-v1.p.rapidapi.com/recipes/searchComplex") else {
             self.errorMessage = "Invalid URL"
             self.isLoading = false
             return
         }
         
+        var queryItems: [URLQueryItem] = [
+            URLQueryItem(name: "query", value: query),
+            URLQueryItem(name: "number", value: "10"),
+            URLQueryItem(name: "addRecipeInformation", value: "true")
+        ]
+        
+        // Add optional diet and intolerances
+        if !diets.isEmpty {
+            queryItems.append(URLQueryItem(name: "diet", value: diets.joined(separator: "%2C")))
+        }
+        
+        if !intolerances.isEmpty {
+            queryItems.append(URLQueryItem(name: "intolerances", value: intolerances.joined(separator: "%2C")))
+        }
+        
+        urlComponents.queryItems = queryItems
+        
+        guard let url = urlComponents.url else {
+            self.errorMessage = "Invalid URL"
+            self.isLoading = false
+            return
+        }
+        
+        var request = URLRequest(url: url, cachePolicy: .useProtocolCachePolicy, timeoutInterval: 10.0)
+        request.httpMethod = "GET"
+        request.allHTTPHeaderFields = headers
+        
         print("Search URL: \(url.absoluteString)")
         
-        URLSession.shared.dataTask(with: url) { [weak self] data, response, error in
+        URLSession.shared.dataTask(with: request) { [weak self] data, response, error in
             guard let self = self else { return }
             
             DispatchQueue.main.async {
