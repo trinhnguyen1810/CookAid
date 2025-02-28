@@ -3,7 +3,7 @@ import Foundation
 
 struct ImportToCollectionView: View {
     let recipe: ImportedRecipeDetail
-    @ObservedObject var collectionsManager: CollectionsManager
+    @EnvironmentObject var collectionsManager: CollectionsManager
     @Environment(\.presentationMode) var presentationMode
     
     var body: some View {
@@ -70,31 +70,7 @@ struct EmptyCollectionsImportView: View {
         let newCollection = RecipeCollection(name: newCollectionName)
         collectionsManager.collections.append(newCollection)
         
-        let collectionRecipe = CollectionRecipe(
-            title: recipe.title,
-            image: recipe.image,
-            ingredients: recipe.extendedIngredients.map {
-                RecipeIngredient(
-                    id: $0.id,
-                    name: $0.name,
-                    amount: $0.amount,
-                    unit: $0.unit,
-                    measures: Measures(
-                        us: UnitMeasure(amount: $0.amount, unitShort: $0.unit, unitLong: $0.unit),
-                        metric: UnitMeasure(amount: $0.amount, unitShort: $0.unit, unitLong: $0.unit)
-                    )
-                )
-            },
-            instructions: recipe.instructionSteps,
-            source: .imported,
-            originalRecipeId: recipe.id,
-            collectionId: newCollection.id
-        )
-        
-        // Add recipe to the new collection
-        if let index = collectionsManager.collections.firstIndex(where: { $0.id == newCollection.id }) {
-            collectionsManager.collections[index].recipes.append(collectionRecipe)
-        }
+        collectionsManager.addRecipeToCollection(importedRecipe: recipe, collectionId: newCollection.id)
         
         // Dismiss the view
         presentationMode.wrappedValue.dismiss()
@@ -112,31 +88,10 @@ struct ImportCollectionListView: View {
         List {
             ForEach(collections) { collection in
                 Button(action: {
-                    let collectionRecipe = CollectionRecipe(
-                        title: recipe.title,
-                        image: recipe.image,
-                        ingredients: recipe.extendedIngredients.map {
-                            RecipeIngredient(
-                                id: $0.id,
-                                name: $0.name,
-                                amount: $0.amount,
-                                unit: $0.unit,
-                                measures: Measures(
-                                    us: UnitMeasure(amount: $0.amount, unitShort: $0.unit, unitLong: $0.unit),
-                                    metric: UnitMeasure(amount: $0.amount, unitShort: $0.unit, unitLong: $0.unit)
-                                )
-                            )
-                        },
-                        instructions: recipe.instructionSteps,
-                        source: .imported,
-                        originalRecipeId: recipe.id,
+                    collectionsManager.addRecipeToCollection(
+                        importedRecipe: recipe,
                         collectionId: collection.id
                     )
-                    
-                    // Add recipe to the selected collection
-                    if let index = collectionsManager.collections.firstIndex(where: { $0.id == collection.id }) {
-                        collectionsManager.collections[index].recipes.append(collectionRecipe)
-                    }
                     
                     // Dismiss the view
                     presentationMode.wrappedValue.dismiss()

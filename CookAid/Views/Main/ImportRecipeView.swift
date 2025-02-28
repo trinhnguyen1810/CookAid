@@ -11,7 +11,7 @@ struct ImportRecipeView: View {
     
     // Managers for recipe import and collection management
     @StateObject private var recipeImportManager = RecipeImportManager()
-    @StateObject private var collectionsManager = CollectionsManager()
+    @EnvironmentObject var collectionsManager: CollectionsManager
     
     var body: some View {
         NavigationStack {
@@ -107,10 +107,8 @@ struct ImportRecipeView: View {
     private var collectionSelectionSheet: some View {
         Group {
             if let recipe = importedRecipe {
-                ImportToCollectionView(
-                    recipe: recipe,
-                    collectionsManager: collectionsManager
-                )
+                ImportToCollectionView(recipe: recipe)
+
             }
         }
     }
@@ -159,5 +157,6 @@ struct ImportRecipeView: View {
 struct ImportRecipeView_Previews: PreviewProvider {
     static var previews: some View {
         ImportRecipeView()
+            .environmentObject(CollectionsManager())
     }
 }

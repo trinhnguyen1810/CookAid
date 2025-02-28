@@ -26,4 +26,3 @@ class FirebaseManager: ObservableObject {
         isUserLoggedIn = false
     }
 }
-

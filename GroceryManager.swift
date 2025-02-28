@@ -27,7 +27,7 @@ class GroceryManager: ObservableObject {
         let db = Firestore.firestore()
         do {
             let _ = try db.collection("users").document(Auth.auth().currentUser!.uid).collection("groceryItems").document(groceryItem.id).setData(from: groceryItem)
-            groceryItems.append(groceryItem) 
+            groceryItems.append(groceryItem) // Update local state
         } catch {
             print("Error adding grocery item: \(error.localizedDescription)")
         }

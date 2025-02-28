@@ -27,11 +27,12 @@ struct ImportedRecipePreviewView: View {
             }
             
             // Recipe Details
-            HStack {
+            HStack(spacing: 40) {
                 if let servings = recipe.servings {
                     HStack {
                         Image(systemName: "person.2")
                         Text("\(servings) Servings")
+                            .font(.custom("Cochin", size: 16))
                     }
                 }
                 
@@ -39,6 +40,7 @@ struct ImportedRecipePreviewView: View {
                     HStack {
                         Image(systemName: "clock")
                         Text("\(readyInMinutes) mins")
+                            .font(.custom("Cochin", size: 16))
                     }
                 }
             }
@@ -47,6 +49,7 @@ struct ImportedRecipePreviewView: View {
             // Add to Collection Button
             Button(action: onAddToCollection) {
                 Text("Add to Collection")
+                    .font(.custom("Cochin", size: 17))
                     .frame(maxWidth: .infinity)
                     .padding()
                     .background(Color.black)

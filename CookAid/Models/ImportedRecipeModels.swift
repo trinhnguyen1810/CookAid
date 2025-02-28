@@ -1,7 +1,7 @@
 import Foundation
 
 // Imported Recipe Detail Model
-struct ImportedRecipeDetail: Codable {
+public struct ImportedRecipeDetail: Codable {
     let id: Int?
     let title: String
     let image: String?
@@ -34,8 +34,8 @@ struct ImportedRecipeDetail: Codable {
 }
 
 // Imported Recipe Ingredient to match your RecipeIngredient structure
-struct ImportedRecipeIngredient: Identifiable, Codable {
-    let id: Int
+public struct ImportedRecipeIngredient: Identifiable, Codable {
+    public let id: Int
     let name: String
     let amount: Double
     let unit: String
@@ -43,12 +43,12 @@ struct ImportedRecipeIngredient: Identifiable, Codable {
 }
 
 // Measures structure to match your Measures
-struct ImportedMeasures: Codable {
+public struct ImportedMeasures: Codable {
     let us: ImportedUnitMeasure
     let metric: ImportedUnitMeasure
 }
 
-struct ImportedUnitMeasure: Codable {
+public struct ImportedUnitMeasure: Codable {
     let amount: Double
     let unitShort: String
     let unitLong: String

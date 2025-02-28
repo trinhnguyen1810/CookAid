@@ -7,13 +7,13 @@
 
 import Foundation
 
-struct Measures: Codable {
-    let us: UnitMeasure
-    let metric: UnitMeasure
+public struct Measures: Codable, Hashable, Equatable {
+    public let metric: MeasureUnit
+    public let us: MeasureUnit
 }
 
-struct UnitMeasure: Codable {
-    let amount: Double
-    let unitShort: String
-    let unitLong: String
+public struct MeasureUnit: Codable, Hashable, Equatable {
+    public let amount: Double
+    public let unitShort: String
+    public let unitLong: String
 }

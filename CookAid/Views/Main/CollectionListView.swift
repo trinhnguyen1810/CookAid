@@ -1,7 +1,4 @@
 import SwiftUI
-import Foundation
-
-
 
 struct CollectionListView: View {
     var collections: [RecipeCollection]

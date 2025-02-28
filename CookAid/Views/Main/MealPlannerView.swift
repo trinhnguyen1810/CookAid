@@ -107,7 +107,7 @@ struct DayPlanView: View {
                 .foregroundColor(.black)
             
             // Meal sections
-            ForEach(["Breakfast", "Lunch", "Dinner"], id: \.self) { mealType in
+            ForEach(["Breakfast", "Lunch", "Dinner", "Others"], id: \.self) { mealType in
                 VStack(alignment: .leading, spacing: 5) {
                     Text(mealType)
                         .font(.custom("Cochin", size: 18))

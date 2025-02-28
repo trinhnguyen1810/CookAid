@@ -4,7 +4,7 @@
 //
 //  Created by Vivian Nguyen on 12/9/24.
 //
-struct RecipeDetail: Codable {
+public struct RecipeDetail: Codable {
     let vegetarian: Bool
     let vegan: Bool
     let glutenFree: Bool

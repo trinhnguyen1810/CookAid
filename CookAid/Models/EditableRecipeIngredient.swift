@@ -1,5 +1,6 @@
 import Foundation
 
+// Editable version of RecipeIngredient for use in forms
 struct EditableRecipeIngredient: Identifiable {
     var id: Int
     var name: String
@@ -30,8 +31,8 @@ struct EditableRecipeIngredient: Identifiable {
             amount: amount,
             unit: unit,
             measures: Measures(
-                us: UnitMeasure(amount: amount, unitShort: unit, unitLong: unit),
-                metric: UnitMeasure(amount: amount, unitShort: unit, unitLong: unit)
+                metric: MeasureUnit(amount: amount, unitShort: unit, unitLong: unit),
+                us: MeasureUnit(amount: amount, unitShort: unit, unitLong: unit)
             )
         )
     }
