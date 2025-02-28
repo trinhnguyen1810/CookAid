@@ -67,10 +67,13 @@ struct CollectionDetailView: View {
                 ) {
                     Button("Delete Recipe", role: .destructive) {
                         if let recipe = recipeToDelete {
+                            // Delete the recipe
                             collectionsManager.removeRecipeFromCollection(
                                 recipeId: recipe.id,
                                 collectionId: collection.id
                             )
+                            // Reset state
+                            recipeToDelete = nil
                         }
                     }
                 }

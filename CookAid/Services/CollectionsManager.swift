@@ -5,8 +5,17 @@ import Combine
 class CollectionsManager: ObservableObject {
     @Published var collections: [RecipeCollections.Collection] = []
     private let collectionsKey = "userRecipeCollections"
+    private let recipeAPIManager: RecipeAPIManager
+    // Initializer with provided RecipeAPIManager
+    init(recipeAPIManager: RecipeAPIManager) {
+        self.recipeAPIManager = recipeAPIManager
+        loadCollections()
+    }
     
+    // Convenience initializer without parameters
     init() {
+        // Create a default RecipeAPIManager instance
+        self.recipeAPIManager = RecipeAPIManager()
         loadCollections()
     }
     
@@ -59,13 +68,34 @@ class CollectionsManager: ObservableObject {
     
     // Add recipe to a specific collection (from QuickRecipe)
     func addRecipeToCollection(quickRecipe: QuickRecipe, collectionId: UUID) {
-        let collectionRecipe = RecipeCollections.Recipe(from: quickRecipe, collectionId: collectionId)
-        
         if let index = collections.firstIndex(where: { $0.id == collectionId }) {
-            // Check if recipe already exists in the collection
-            if !collections[index].recipes.contains(where: { $0.originalRecipeId == quickRecipe.id }) {
-                collections[index].recipes.append(collectionRecipe)
-                saveCollections()
+            // Create a temporary partial recipe with basic info
+            let partialRecipe = RecipeCollections.Recipe(
+                from: quickRecipe,
+                collectionId: collectionId
+            )
+            
+            // Add partial recipe to collection immediately for UI responsiveness
+            collections[index].recipes.append(partialRecipe)
+            
+            // Then fetch the full details in the background
+            Task {
+                if let recipeDetail = await recipeAPIManager.fetchRecipeDetail(id: quickRecipe.id) {
+                    // Create a full recipe with all details
+                    let fullRecipe = RecipeCollections.Recipe(
+                        from: recipeDetail,
+                        collectionId: collectionId
+                    )
+                    
+                    // Update the collection with the complete recipe
+                    await MainActor.run {
+                        // Find the index of the partial recipe
+                        if let recipeIndex = self.collections[index].recipes.firstIndex(where: { $0.originalRecipeId == quickRecipe.id }) {
+                            // Replace it with the full recipe
+                            self.collections[index].recipes[recipeIndex] = fullRecipe
+                        }
+                    }
+                }
             }
         }
     }
@@ -108,11 +138,13 @@ class CollectionsManager: ObservableObject {
             }
         }
     }
-    
-    // Remove recipe from a collection
+
     func removeRecipeFromCollection(recipeId: UUID, collectionId: UUID) {
         if let collectionIndex = collections.firstIndex(where: { $0.id == collectionId }) {
+            // Find and remove the recipe
             collections[collectionIndex].recipes.removeAll { $0.id == recipeId }
+            objectWillChange.send()
+            
             saveCollections()
         }
     }

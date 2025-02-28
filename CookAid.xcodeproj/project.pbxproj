@@ -7,6 +7,11 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		AC22841F2D723C1B008EFC84 /* MealPlanManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC22841E2D723C1B008EFC84 /* MealPlanManager.swift */; };
+		AC2284232D723C61008EFC84 /* MealPlanModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC2284222D723C61008EFC84 /* MealPlanModels.swift */; };
+		AC2284252D723CA3008EFC84 /* RecipeSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC2284242D723CA3008EFC84 /* RecipeSelectionView.swift */; };
+		AC2284272D723CC6008EFC84 /* MealItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC2284262D723CC6008EFC84 /* MealItemView.swift */; };
+		AC2284292D723CEA008EFC84 /* DayPlanView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC2284282D723CEA008EFC84 /* DayPlanView.swift */; };
 		AC2E5A992D71EB1A002C8DDC /* CollectionRecipeDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC2E5A982D71EB1A002C8DDC /* CollectionRecipeDetailView.swift */; };
 		AC2E5A9B2D71EB7C002C8DDC /* EditCollectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC2E5A9A2D71EB7C002C8DDC /* EditCollectionView.swift */; };
 		AC2E5A9D2D71EB99002C8DDC /* AddCollectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC2E5A9C2D71EB99002C8DDC /* AddCollectionView.swift */; };
@@ -96,6 +101,11 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		AC22841E2D723C1B008EFC84 /* MealPlanManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MealPlanManager.swift; sourceTree = "<group>"; };
+		AC2284222D723C61008EFC84 /* MealPlanModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MealPlanModels.swift; sourceTree = "<group>"; };
+		AC2284242D723CA3008EFC84 /* RecipeSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeSelectionView.swift; sourceTree = "<group>"; };
+		AC2284262D723CC6008EFC84 /* MealItemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MealItemView.swift; sourceTree = "<group>"; };
+		AC2284282D723CEA008EFC84 /* DayPlanView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DayPlanView.swift; sourceTree = "<group>"; };
 		AC2E5A982D71EB1A002C8DDC /* CollectionRecipeDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollectionRecipeDetailView.swift; sourceTree = "<group>"; };
 		AC2E5A9A2D71EB7C002C8DDC /* EditCollectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditCollectionView.swift; sourceTree = "<group>"; };
 		AC2E5A9C2D71EB99002C8DDC /* AddCollectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddCollectionView.swift; sourceTree = "<group>"; };
@@ -205,6 +215,7 @@
 				AC594CF52D71972500B5CE63 /* RecipeAPIManager.swift */,
 				AC594CF82D71974500B5CE63 /* CollectionsManager.swift */,
 				AC594CFA2D71985C00B5CE63 /* RecipeImportManager.swift */,
+				AC22841E2D723C1B008EFC84 /* MealPlanManager.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -294,6 +305,9 @@
 				AC2E5A9C2D71EB99002C8DDC /* AddCollectionView.swift */,
 				AC2E5A9E2D71EBB1002C8DDC /* EditRecipeView.swift */,
 				AC2E5AA02D71EBD4002C8DDC /* CreateRecipeView.swift */,
+				AC2284242D723CA3008EFC84 /* RecipeSelectionView.swift */,
+				AC2284262D723CC6008EFC84 /* MealItemView.swift */,
+				AC2284282D723CEA008EFC84 /* DayPlanView.swift */,
 			);
 			path = Main;
 			sourceTree = "<group>";
@@ -321,6 +335,7 @@
 				AC594CD02D7161F800B5CE63 /* ImportedRecipeModels.swift */,
 				AC594CE02D718D2E00B5CE63 /* EditableRecipeIngredient.swift */,
 				AC6146682D71AA4700960A48 /* RecipeCollections.swift */,
+				AC2284222D723C61008EFC84 /* MealPlanModels.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -467,14 +482,18 @@
 				AC75978F2CB90E700047D091 /* NewRecipeView.swift in Sources */,
 				AC594CBD2D7099C800B5CE63 /* DietChipView.swift in Sources */,
 				AC8AB1572D040A64001A0FF4 /* GroceryItem.swift in Sources */,
+				AC2284292D723CEA008EFC84 /* DayPlanView.swift in Sources */,
 				AC76CA1F2D017CCC001540AF /* Ingredient.swift in Sources */,
 				AC594CBB2D70943700B5CE63 /* DietFilterView.swift in Sources */,
 				AC594CD92D7163F600B5CE63 /* AddToCollectionView.swift in Sources */,
 				AC76CA212D017E6B001540AF /* AddIngredientView.swift in Sources */,
 				AC75978B2CB90E220047D091 /* HomeView.swift in Sources */,
+				AC2284252D723CA3008EFC84 /* RecipeSelectionView.swift in Sources */,
 				AC2E5A9D2D71EB99002C8DDC /* AddCollectionView.swift in Sources */,
 				AC2E5A9B2D71EB7C002C8DDC /* EditCollectionView.swift in Sources */,
 				AC594CCB2D71603900B5CE63 /* CollectionsView.swift in Sources */,
+				AC2284232D723C61008EFC84 /* MealPlanModels.swift in Sources */,
+				AC22841F2D723C1B008EFC84 /* MealPlanManager.swift in Sources */,
 				AC4FD6A12CBAD5830093A7DC /* BottomTabBar.swift in Sources */,
 				AC594CF02D71968700B5CE63 /* FirebaseManager.swift in Sources */,
 				AC7597782CB90C8A0047D091 /* ContentView.swift in Sources */,
@@ -501,6 +520,7 @@
 				AC4FD69D2CBAD3E80093A7DC /* ProfileView.swift in Sources */,
 				AC4FD6A32CBAD5AD0093A7DC /* TabBarButton.swift in Sources */,
 				AC594CF22D7196A400B5CE63 /* IngredientsManager.swift in Sources */,
+				AC2284272D723CC6008EFC84 /* MealItemView.swift in Sources */,
 				AC2E5A9F2D71EBB1002C8DDC /* EditRecipeView.swift in Sources */,
 				AC594CD72D7162B900B5CE63 /* ImportRecipeView.swift in Sources */,
 				AC4FD69F2CBAD41C0093A7DC /* MyRecipeView.swift in Sources */,

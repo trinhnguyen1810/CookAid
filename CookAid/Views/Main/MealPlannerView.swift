@@ -1,20 +1,17 @@
-//
-//  MealPlannerView.swift
-//  CookAid
-//
-//  Created by Vivian Nguyen on 12/11/24.
-//
-
-import Foundation
 import SwiftUI
 
 struct MealPlannerView: View {
     @State private var currentWeekOffset = 0
-    let mealTypes = ["Breakfast", "Lunch", "Dinner"]
+    @EnvironmentObject var mealPlanManager: MealPlanManager
+    @EnvironmentObject var collectionsManager: CollectionsManager
+    @State private var showingRecipeSelection = false
+    @State private var selectedDate: Date?
+    @State private var selectedMealType: MealType?
+    @State private var draggedItem: MealItem?
     
     var body: some View {
         NavigationStack {
-            ZStack {  // Add ZStack to layer BottomTabBar over content
+            ZStack {  // ZStack to layer BottomTabBar over content
                 VStack(alignment: .leading, spacing: 20) {
                     // Header
                     Text("Meal Planner")
@@ -25,7 +22,9 @@ struct MealPlannerView: View {
                     
                     // Week Navigation
                     HStack {
-                        Button(action: { currentWeekOffset -= 1 }) {
+                        Button {
+                            currentWeekOffset -= 1
+                        } label: {
                             Image(systemName: "chevron.left")
                                 .foregroundColor(.black)
                         }
@@ -38,7 +37,9 @@ struct MealPlannerView: View {
                         
                         Spacer()
                         
-                        Button(action: { currentWeekOffset += 1 }) {
+                        Button {
+                            currentWeekOffset += 1
+                        } label: {
                             Image(systemName: "chevron.right")
                                 .foregroundColor(.black)
                         }
@@ -49,12 +50,38 @@ struct MealPlannerView: View {
                     ScrollView {
                         VStack(spacing: 15) {
                             ForEach(daysOfWeek, id: \.self) { day in
-                                DayPlanView(day: day)
+                                DayPlanView(
+                                    day: day,
+                                    mealPlanManager: mealPlanManager,
+                                    onAddMeal: { date, mealType in
+                                        print("MealPlannerView: Add meal callback received for \(mealType.rawValue) on \(date)")
+                                        selectedDate = date
+                                        selectedMealType = mealType
+                                        showingRecipeSelection = true
+                                    },
+                                    draggedItem: $draggedItem
+                                )
                             }
                         }
                         .padding(.horizontal, 20)
-                        .padding(.bottom, 80) // Add padding to prevent content from being hidden behind BottomTabBar
+                        .padding(.bottom, 80) // Prevent content being hidden behind BottomTabBar
                     }
+                    
+                    // Debug button to test sheet presentation
+                    Button {
+                        selectedDate = Date()
+                        selectedMealType = .breakfast
+                        showingRecipeSelection = true
+                        print("Debug button pressed, showingRecipeSelection: \(showingRecipeSelection)")
+                    } label: {
+                        Text("Test Sheet Presentation")
+                            .font(.custom("Cochin", size: 16))
+                            .padding()
+                            .background(Color.blue.opacity(0.2))
+                            .cornerRadius(8)
+                    }
+                    .padding(.horizontal, 20)
+                    .padding(.bottom, 20)
                 }
                 .background(Color.white)
                 
@@ -64,8 +91,27 @@ struct MealPlannerView: View {
                     BottomTabBar()
                 }
             }
+            .onChange(of: showingRecipeSelection) { newValue in
+                print("showingRecipeSelection changed to: \(newValue)")
+                if newValue {
+                    print("Selected date: \(String(describing: selectedDate))")
+                    print("Selected meal type: \(String(describing: selectedMealType?.rawValue))")
+                }
+            }
+            .sheet(isPresented: $showingRecipeSelection) {
+                if let date = selectedDate, let mealType = selectedMealType {
+                    RecipeSelectionView(date: date, mealType: mealType)
+                        .environmentObject(collectionsManager)
+                        .environmentObject(mealPlanManager)
+                } else {
+                    // Fallback view in case date or mealType is nil
+                    Text("Please select a meal time")
+                        .font(.custom("Cochin", size: 18))
+                }
+            }
         }
     }
+    
     var weekDateRange: String {
         let calendar = Calendar.current
         let today = calendar.startOfDay(for: Date())
@@ -94,57 +140,3 @@ struct MealPlannerView: View {
         }
     }
 }
-
-struct DayPlanView: View {
-    let day: Date
-    
-    var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            // Day header
-            Text(dayFormatter.string(from: day))
-                .font(.custom("Cochin", size: 18))
-                .fontWeight(.bold)
-                .foregroundColor(.black)
-            
-            // Meal sections
-            ForEach(["Breakfast", "Lunch", "Dinner", "Others"], id: \.self) { mealType in
-                VStack(alignment: .leading, spacing: 5) {
-                    Text(mealType)
-                        .font(.custom("Cochin", size: 18))
-                        .foregroundColor(.gray)
-                    
-                    Button(action: {
-                        // Add meal action
-                    }) {
-                        HStack {
-                            Image(systemName: "plus.circle")
-                            Text("Add \(mealType)")
-                        }
-                        .font(.custom("Cochin", size: 18))
-                        .foregroundColor(.black)
-                        .padding(10)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 8)
-                                .stroke(Color.black, lineWidth: 1)
-                        )
-                    }
-                }
-            }
-        }
-        .padding(15)
-        .background(Color.white)
-        .cornerRadius(10)
-        .overlay(
-            RoundedRectangle(cornerRadius: 10)
-                .stroke(Color.gray.opacity(0.3), lineWidth: 1)
-        )
-    }
-    
-    private var dayFormatter: DateFormatter {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "EEEE, MMM d"
-        return formatter
-    }
-}
-

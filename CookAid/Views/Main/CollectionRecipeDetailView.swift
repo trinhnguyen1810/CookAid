@@ -5,6 +5,7 @@ struct CollectionRecipeDetailView: View {
     var collectionId: UUID
     @EnvironmentObject var collectionsManager: CollectionsManager
     @State private var showingEditSheet = false
+    @State private var isShowingFullRecipe = false
     
     var body: some View {
         ScrollView {
@@ -92,44 +93,74 @@ struct CollectionRecipeDetailView: View {
                     .padding(.horizontal)
                 }
                 
-                // Ingredients Section
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Ingredients")
-                        .font(.custom("Cochin", size: 20))
-                        .fontWeight(.bold)
+                // For API recipes with missing data, show a button to view complete details
+                if recipe.source == .apiRecipe && recipe.originalRecipeId != nil &&
+                   (recipe.ingredients.isEmpty || recipe.instructions.isEmpty) {
                     
-                    if recipe.ingredients.isEmpty {
-                        Text("No ingredients available.")
-                            .font(.custom("Cochin", size: 16))
-                            .foregroundColor(.gray)
-                    } else {
-                        ForEach(recipe.ingredients, id: \.id) { ingredient in
-                            Text("\(formatNumber(ingredient.amount)) \(ingredient.unit) \(ingredient.name)")
-                                .font(.custom("Cochin", size: 16))
+                    VStack(spacing: 20) {
+                        Text("This recipe has full details available")
+                            .font(.custom("Cochin", size: 18))
+                            .multilineTextAlignment(.center)
+                        
+                        Button(action: {
+                            isShowingFullRecipe = true
+                        }) {
+                            HStack {
+                                Image(systemName: "eye")
+                                Text("View Complete Recipe")
+                            }
+                            .font(.custom("Cochin", size: 17))
+                            .padding()
+                            .frame(maxWidth: .infinity)
+                            .background(Color.black)
+                            .foregroundColor(.white)
+                            .cornerRadius(10)
                         }
                     }
-                }
-                .padding(.horizontal)
-                
-                // Instructions Section
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Instructions")
-                        .font(.custom("Cochin", size: 20))
-                        .fontWeight(.bold)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 20)
+                    .padding(.horizontal)
                     
-                    if recipe.instructions.isEmpty {
-                        Text("No instructions available.")
-                            .font(.custom("Cochin", size: 16))
-                            .foregroundColor(.gray)
-                    } else {
-                        ForEach(Array(recipe.instructions.enumerated()), id: \.offset) { index, step in
-                            Text("\(index + 1). \(step)")
+                } else {
+                    // Ingredients Section
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Ingredients")
+                            .font(.custom("Cochin", size: 20))
+                            .fontWeight(.bold)
+                        
+                        if recipe.ingredients.isEmpty {
+                            Text("No ingredients available.")
                                 .font(.custom("Cochin", size: 16))
-                                .padding(.bottom, 4)
+                                .foregroundColor(.gray)
+                        } else {
+                            ForEach(recipe.ingredients, id: \.id) { ingredient in
+                                Text("\(formatNumber(ingredient.amount)) \(ingredient.unit) \(ingredient.name)")
+                                    .font(.custom("Cochin", size: 16))
+                            }
                         }
                     }
+                    .padding(.horizontal)
+                    
+                    // Instructions Section
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Instructions")
+                            .font(.custom("Cochin", size: 20))
+                            .fontWeight(.bold)
+                        
+                        if recipe.instructions.isEmpty {
+                            Text("No instructions available.")
+                                .font(.custom("Cochin", size: 16))
+                                .foregroundColor(.gray)
+                        } else {
+                            ForEach(Array(recipe.instructions.enumerated()), id: \.offset) { index, step in
+                                Text("\(index + 1). \(step)")
+                                    .font(.custom("Cochin", size: 16))
+                                    .padding(.bottom, 4)
+                            }
+                        }
+                    }
+                    .padding(.horizontal)
                 }
-                .padding(.horizontal)
             }
             .padding(.vertical)
         }
@@ -141,6 +172,14 @@ struct CollectionRecipeDetailView: View {
                 collectionId: collectionId
             )
         }
+        .background(
+            NavigationLink(
+                destination: recipe.originalRecipeId != nil ? RecipeDetailView(recipeId: recipe.originalRecipeId!) : nil,
+                isActive: $isShowingFullRecipe
+            ) {
+                EmptyView()
+            }
+        )
     }
     
     private func formatNumber(_ number: Double) -> String {

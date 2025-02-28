@@ -73,6 +73,42 @@ class RecipeAPIManager: ObservableObject {
         }.resume()
     }
     
+    func fetchRecipeDetail(id: Int) async -> RecipeDetail? {
+        guard let url = URL(string: "https://spoonacular-recipe-food-nutrition-v1.p.rapidapi.com/recipes/\(id)/information") else {
+            await MainActor.run {
+                self.errorMessage = "Invalid URL"
+            }
+            return nil
+        }
+        
+        var request = URLRequest(url: url, cachePolicy: .useProtocolCachePolicy, timeoutInterval: 10.0)
+        request.httpMethod = "GET"
+        request.allHTTPHeaderFields = headers
+        
+        await MainActor.run {
+            self.isLoading = true
+            self.errorMessage = nil
+        }
+        
+        do {
+            let (data, _) = try await URLSession.shared.data(for: request)
+            
+            await MainActor.run {
+                self.isLoading = false
+            }
+            
+            let decoder = JSONDecoder()
+            return try decoder.decode(RecipeDetail.self, from: data)
+        } catch {
+            await MainActor.run {
+                self.isLoading = false
+                self.errorMessage = "Error fetching recipe detail: \(error.localizedDescription)"
+            }
+            print("Error decoding recipe detail: \(error)")
+            return nil
+        }
+    }
+    
     @MainActor
     func fetchQuickMeals(ingredients: [String], diets: [String] = [], intolerances: [String] = []) {
         let ingredientsString = ingredients.joined(separator: "%2C")

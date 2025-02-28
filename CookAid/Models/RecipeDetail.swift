@@ -1,9 +1,4 @@
-//
-//  RecipeDetail.swift
-//  CookAid
-//
-//  Created by Vivian Nguyen on 12/9/24.
-//
+
 public struct RecipeDetail: Codable {
     let vegetarian: Bool
     let vegan: Bool

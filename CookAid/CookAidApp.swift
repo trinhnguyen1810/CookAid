@@ -5,8 +5,10 @@ import Firebase
 struct CookAidApp: App {
     @StateObject var viewModel = AuthViewModel()
     @StateObject private var ingredientsManager = IngredientsManager()
-    @StateObject private var collectionsManager = CollectionsManager() // Add this line
-    
+    @StateObject private var collectionsManager = CollectionsManager()
+    @StateObject private var recipeAPIManager = RecipeAPIManager()
+    @StateObject var mealPlanManager = MealPlanManager()
+
     @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     
     var body: some Scene {
@@ -14,7 +16,10 @@ struct CookAidApp: App {
             ContentView()
                 .environmentObject(viewModel)
                 .environmentObject(ingredientsManager)
-                .environmentObject(collectionsManager) // Add this line
+                .environmentObject(collectionsManager)
+                .environmentObject(mealPlanManager)
+                .environmentObject(recipeAPIManager)
+            
         }
     }
 }
