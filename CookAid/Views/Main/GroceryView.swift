@@ -143,14 +143,30 @@ struct GroceryView: View {
     }
 
     private func addToPantry(_ item: GroceryItem) {
-        let newIngredient = Ingredient(id: item.id, name: item.name, dateBought: Date(), category: item.category)
+        // Extract just the ingredient name from the full text
+        // The format is: "[name] - [amount] [unit]"
+        var ingredientName = item.name
+        
+        // Check if the name contains a hyphen (which separates name from quantity)
+        if let hyphenRange = item.name.range(of: " - ") {
+            // Extract just the part before the hyphen
+            ingredientName = String(item.name[..<hyphenRange.lowerBound])
+        }
+        
+        let newIngredient = Ingredient(
+            id: item.id,
+            name: ingredientName, // Use the extracted name
+            dateBought: Date(),
+            category: item.category
+        )
+        
         // Add to pantry using IngredientsManager
         Task {
-            await ingredientsManager.addIngredient(newIngredient) // Add await here
-            deleteGroceryItem(item) 
+            await ingredientsManager.addIngredient(newIngredient)
+            deleteGroceryItem(item)
         }
     }
-}
+    }
 
 // Preview
 struct GroceryView_Previews: PreviewProvider {
