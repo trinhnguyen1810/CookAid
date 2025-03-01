@@ -127,9 +127,18 @@ struct CollectionRecipeDetailView: View {
                 } else {
                     // Ingredients Section
                     VStack(alignment: .leading, spacing: 8) {
-                        Text("Ingredients")
-                            .font(.custom("Cochin", size: 20))
-                            .fontWeight(.bold)
+                        HStack {
+                            Text("Ingredients")
+                                .font(.custom("Cochin", size: 20))
+                                .fontWeight(.bold)
+                            
+                            Spacer()
+                            
+                            Text("(Tap to add to grocery list)")
+                                .font(.custom("Cochin", size: 14))
+                                .foregroundColor(.gray)
+                                .italic()
+                        }
                         
                         if recipe.ingredients.isEmpty {
                             Text("No ingredients available.")
@@ -137,19 +146,37 @@ struct CollectionRecipeDetailView: View {
                                 .foregroundColor(.gray)
                         } else {
                             ForEach(recipe.ingredients, id: \.id) { ingredient in
-                                Text("\(formatNumber(ingredient.amount)) \(ingredient.unit) \(ingredient.name)")
-                                    .font(.custom("Cochin", size: 16))
-                                    .foregroundColor(.black)
-                                    .padding(.vertical, 4)
-                                    .background(
-                                        RoundedRectangle(cornerRadius: 4)
-                                            .fill(Color.gray.opacity(0.1))
-                                            .padding(-2)
-                                    )
-                                    .onTapGesture {
+                                HStack {
+                                    Text("\(formatNumber(ingredient.amount)) \(ingredient.unit) \(ingredient.name)")
+                                        .font(.custom("Cochin", size: 16))
+                                        .foregroundColor(.black)
+                                    
+                                    Spacer()
+                                    
+                                    Button {
+                                        // Make sure we set the ingredient first and wait for the state to update
+                                        // before showing the sheet
                                         selectedIngredient = ingredient
-                                        showCategorySelection = true
+                                        
+                                        // Use a slightly longer delay to ensure state is fully updated
+                                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                                            // Double check that the ingredient is still set before showing sheet
+                                            if selectedIngredient != nil {
+                                                showCategorySelection = true
+                                            }
+                                        }
+                                    } label: {
+                                        Image(systemName: "cart.badge.plus")
+                                            .foregroundColor(.blue)
                                     }
+                                    .buttonStyle(BorderlessButtonStyle())
+                                }
+                                .padding(.vertical, 4)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 4)
+                                        .fill(Color.gray.opacity(0.1))
+                                        .padding(-2)
+                                )
                             }
                         }
                     }
@@ -186,12 +213,35 @@ struct CollectionRecipeDetailView: View {
                 collectionId: collectionId
             )
         }
-        .sheet(isPresented: $showCategorySelection) {
+        .sheet(isPresented: $showCategorySelection, onDismiss: {
+            // Reset the selectedIngredient when sheet is dismissed
+            selectedIngredient = nil
+        }) {
+            // Only show the sheet if selectedIngredient is not nil
+            // This is a critical guard that prevents a blank sheet
             if let ingredient = selectedIngredient {
-                CategorySelectionView(
-                    ingredient: ingredient,
-                    groceryManager: groceryManager
-                )
+                NavigationView {
+                    CategorySelectionView(
+                        ingredient: ingredient,
+                        groceryManager: groceryManager,
+                        onAdd: {
+                            // Directly set showCategorySelection to false to dismiss the sheet
+                            showCategorySelection = false
+                        }
+                    )
+                    .navigationBarItems(trailing: Button("Done") {
+                        showCategorySelection = false
+                    })
+                }
+            } else {
+                // This is a fallback in case selectedIngredient is nil somehow
+                // It will automatically dismiss the sheet
+                Color.clear.onAppear {
+                    print("ERROR: Tried to show category selection with nil ingredient")
+                    DispatchQueue.main.async {
+                        showCategorySelection = false
+                    }
+                }
             }
         }
         .background(

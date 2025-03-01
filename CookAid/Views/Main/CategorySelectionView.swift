@@ -3,6 +3,7 @@ import SwiftUI
 struct CategorySelectionView: View {
     let ingredient: RecipeIngredient
     let groceryManager: GroceryManager
+    let onAdd: () -> Void
     @State private var selectedCategory: String = "Others"
     @Environment(\.presentationMode) var presentationMode
     
@@ -19,19 +20,26 @@ struct CategorySelectionView: View {
     ]
     
     var body: some View {
-        NavigationView {
-            VStack {
-                Text("Select a category for:")
-                    .font(.custom("Cochin", size: 20))
-                    .padding(.top)
+        VStack {
+            Text("Adding to Grocery List:")
+                .font(.custom("Cochin", size: 20))
+                .padding(.top)
+            
+            Text(ingredient.name)
+                .font(.custom("Cochin", size: 22))
+                .fontWeight(.bold)
+                .padding(.bottom)
                 
-                Text(ingredient.name)
-                    .font(.custom("Cochin", size: 22))
-                    .fontWeight(.bold)
-                    .padding(.bottom)
-                
-                List {
-                    ForEach(categories, id: \.self) { category in
+            Text("Select a category")
+                .font(.custom("Cochin", size: 18))
+                .foregroundColor(.gray)
+                .padding(.bottom, 5)
+            
+            List {
+                ForEach(categories, id: \.self) { category in
+                    Button(action: {
+                        selectedCategory = category
+                    }) {
                         HStack {
                             Text(category)
                                 .font(.custom("Cochin", size: 18))
@@ -43,30 +51,24 @@ struct CategorySelectionView: View {
                                     .foregroundColor(.black)
                             }
                         }
-                        .contentShape(Rectangle())
-                        .onTapGesture {
-                            selectedCategory = category
-                        }
                     }
+                    .buttonStyle(PlainButtonStyle())
                 }
-                
-                Button(action: {
-                    addToGroceryList()
-                    presentationMode.wrappedValue.dismiss()
-                }) {
-                    Text("Add to Grocery List")
-                        .font(.custom("Cochin", size: 18))
-                        .fontWeight(.medium)
-                        .padding()
-                        .frame(maxWidth: .infinity)
-                        .background(Color.black)
-                        .foregroundColor(.white)
-                        .cornerRadius(10)
-                }
-                .padding()
             }
-            .navigationTitle("Choose Category")
-            .navigationBarTitleDisplayMode(.inline)
+            
+            Button(action: {
+                addToGroceryList()
+            }) {
+                Text("Add to Grocery List")
+                    .font(.custom("Cochin", size: 18))
+                    .fontWeight(.medium)
+                    .padding()
+                    .frame(maxWidth: .infinity)
+                    .background(Color.black)
+                    .foregroundColor(.white)
+                    .cornerRadius(10)
+            }
+            .padding()
         }
     }
     
@@ -80,6 +82,9 @@ struct CategorySelectionView: View {
         
         // Add to grocery list using grocery manager
         groceryManager.addGroceryItem(groceryItem)
+        
+        // Call the closure to dismiss the sheet from the parent view
+        onAdd()
     }
     
     private func formatNumber(_ number: Double) -> String {
