@@ -189,7 +189,7 @@ struct CollectionRecipeDetailView: View {
     private func sourceTypeString(_ source: RecipeSource) -> String {
         switch source {
         case .apiRecipe:
-            return "API Recipe (View Only)"
+            return "Spoonacular API Recipe (View Only)"
         case .imported:
             return "Imported Recipe"
         case .custom:

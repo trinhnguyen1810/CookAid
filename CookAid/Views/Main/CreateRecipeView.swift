@@ -1,7 +1,8 @@
 import SwiftUI
+import PhotosUI
 
 struct CreateRecipeView: View {
-    @ObservedObject var collectionsManager: CollectionsManager
+    @EnvironmentObject var collectionsManager: CollectionsManager
     @Environment(\.presentationMode) var presentationMode
     @State private var title = ""
     @State private var servings = 2
@@ -9,6 +10,12 @@ struct CreateRecipeView: View {
     @State private var ingredients: [EditableRecipeIngredient] = []
     @State private var instructions: [String] = [""]
     @State private var showingCollectionSelection = false
+    
+    // Image selection states
+    @State private var selectedImage: UIImage?
+    @State private var showingImagePicker = false
+    @State private var imagePickerSourceType: UIImagePickerController.SourceType = .photoLibrary
+    @State private var showingSourceTypeActionSheet = false
     
     var body: some View {
         NavigationStack {
@@ -19,6 +26,28 @@ struct CreateRecipeView: View {
                     Stepper("Servings: \(servings)", value: $servings, in: 1...20)
                     
                     Stepper("Cook Time: \(cookTime) min", value: $cookTime, in: 5...180, step: 5)
+                    
+                    // Image selection
+                    Button(action: {
+                        showingSourceTypeActionSheet = true
+                    }) {
+                        HStack {
+                            Text(selectedImage == nil ? "Add Photo" : "Change Photo")
+                            Spacer()
+                            if let image = selectedImage {
+                                Image(uiImage: image)
+                                    .resizable()
+                                    .scaledToFill()
+                                    .frame(width: 60, height: 60)
+                                    .cornerRadius(8)
+                            } else {
+                                Image(systemName: "photo")
+                                    .font(.system(size: 30))
+                                    .frame(width: 60, height: 60)
+                                    .foregroundColor(.gray)
+                            }
+                        }
+                    }
                 }
                 
                 Section(header: Text("Ingredients")) {
@@ -76,12 +105,31 @@ struct CreateRecipeView: View {
                     presentationMode.wrappedValue.dismiss()
                 }
             )
+            .sheet(isPresented: $showingImagePicker) {
+                ImagePicker(image: $selectedImage, sourceType: imagePickerSourceType)
+            }
             .sheet(isPresented: $showingCollectionSelection) {
                 SelectCollectionView(
-                    collectionsManager: collectionsManager,
                     onSave: { collectionId in
                         saveRecipe(to: collectionId)
                     }
+                )
+                .environmentObject(collectionsManager)
+            }
+            .actionSheet(isPresented: $showingSourceTypeActionSheet) {
+                ActionSheet(
+                    title: Text("Select Photo Source"),
+                    buttons: [
+                        .default(Text("Camera")) {
+                            imagePickerSourceType = .camera
+                            showingImagePicker = true
+                        },
+                        .default(Text("Photo Library")) {
+                            imagePickerSourceType = .photoLibrary
+                            showingImagePicker = true
+                        },
+                        .cancel()
+                    ]
                 )
             }
         }
@@ -94,11 +142,17 @@ struct CreateRecipeView: View {
     }
     
     private func saveRecipe(to collectionId: UUID) {
+        // Save image to documents directory if available
+        var imagePath: String?
+        if let image = selectedImage {
+            imagePath = saveImage(image)
+        }
+        
         // Create a new CollectionRecipe
         let recipe = RecipeCollections.Recipe(
             id: UUID(),
             title: title,
-            image: nil,
+            image: imagePath,
             ingredients: ingredients.map { $0.toRecipeIngredient() },
             instructions: instructions.filter { !$0.isEmpty },
             source: .custom,
@@ -111,14 +165,36 @@ struct CreateRecipeView: View {
             collectionsManager.collections[index].recipes.append(recipe)
             // Save collections
             collectionsManager.saveCollections()
+            // Notify UI to update
+            collectionsManager.objectWillChange.send()
         }
         
         presentationMode.wrappedValue.dismiss()
     }
+    
+    private func saveImage(_ image: UIImage) -> String? {
+        guard let data = image.jpegData(compressionQuality: 0.7) else { return nil }
+        
+        let fileName = UUID().uuidString + ".jpg"
+        let fileURL = getDocumentsDirectory().appendingPathComponent(fileName)
+        
+        do {
+            try data.write(to: fileURL)
+            return fileURL.path
+        } catch {
+            print("Error saving image: \(error)")
+            return nil
+        }
+    }
+    
+    private func getDocumentsDirectory() -> URL {
+        let paths = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
+        return paths[0]
+    }
 }
 
 struct SelectCollectionView: View {
-    @ObservedObject var collectionsManager: CollectionsManager
+    @EnvironmentObject var collectionsManager: CollectionsManager
     @Environment(\.presentationMode) var presentationMode
     @State private var selectedCollectionId: UUID?
     @State private var showingCreateCollection = false
@@ -202,3 +278,4 @@ struct SelectCollectionView: View {
         }
     }
 }
+

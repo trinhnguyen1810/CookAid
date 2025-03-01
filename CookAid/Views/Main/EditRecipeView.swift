@@ -1,15 +1,23 @@
 import SwiftUI
+import PhotosUI
 
 struct EditRecipeView: View {
-    @ObservedObject var collectionsManager: CollectionsManager
+    @EnvironmentObject var collectionsManager: CollectionsManager
     @State private var recipe: CollectionRecipe
     @State private var editableIngredients: [EditableRecipeIngredient] = []
+    @State private var currentImage: UIImage?
     var collectionId: UUID
     @Environment(\.presentationMode) var presentationMode
     @State private var showDeleteConfirmation = false
     
+    // Image selection states
+    @State private var selectedImage: UIImage?
+    @State private var showingImagePicker = false
+    @State private var imagePickerSourceType: UIImagePickerController.SourceType = .photoLibrary
+    @State private var showingSourceTypeActionSheet = false
+    @State private var imageChanged = false
+    
     init(collectionsManager: CollectionsManager, recipe: CollectionRecipe, collectionId: UUID) {
-        self.collectionsManager = collectionsManager
         self._recipe = State(initialValue: recipe)
         self.collectionId = collectionId
         self._editableIngredients = State(initialValue: recipe.ingredients.map { EditableRecipeIngredient(from: $0) })
@@ -20,6 +28,42 @@ struct EditRecipeView: View {
             Form {
                 Section(header: Text("Recipe Details")) {
                     TextField("Title", text: $recipe.title)
+                    
+                    // Photo selection
+                    VStack(alignment: .leading) {
+                        Button(action: {
+                            showingSourceTypeActionSheet = true
+                        }) {
+                            HStack {
+                                Text("Change Photo")
+                                Spacer()
+                                if let image = selectedImage {
+                                    Image(uiImage: image)
+                                        .resizable()
+                                        .scaledToFill()
+                                        .frame(width: 60, height: 60)
+                                        .cornerRadius(8)
+                                } else if let currentImage = currentImage {
+                                    Image(uiImage: currentImage)
+                                        .resizable()
+                                        .scaledToFill()
+                                        .frame(width: 60, height: 60)
+                                        .cornerRadius(8)
+                                } else if recipe.image != nil {
+                                    // Placeholder while loading
+                                    Image(systemName: "photo")
+                                        .font(.system(size: 30))
+                                        .frame(width: 60, height: 60)
+                                        .foregroundColor(.gray)
+                                } else {
+                                    Image(systemName: "photo")
+                                        .font(.system(size: 30))
+                                        .frame(width: 60, height: 60)
+                                        .foregroundColor(.gray)
+                                }
+                            }
+                        }
+                    }
                     
                     // Tags field
                     VStack(alignment: .leading) {
@@ -104,6 +148,43 @@ struct EditRecipeView: View {
             } message: {
                 Text("Are you sure you want to delete this recipe from the collection? This cannot be undone.")
             }
+            .sheet(isPresented: $showingImagePicker) {
+                ImagePicker(image: $selectedImage, sourceType: imagePickerSourceType)
+                    .onDisappear {
+                        if selectedImage != nil {
+                            imageChanged = true
+                        }
+                    }
+            }
+            .actionSheet(isPresented: $showingSourceTypeActionSheet) {
+                ActionSheet(
+                    title: Text("Select Photo Source"),
+                    buttons: [
+                        .default(Text("Camera")) {
+                            imagePickerSourceType = .camera
+                            showingImagePicker = true
+                        },
+                        .default(Text("Photo Library")) {
+                            imagePickerSourceType = .photoLibrary
+                            showingImagePicker = true
+                        },
+                        .destructive(Text("Remove Photo")) {
+                            selectedImage = nil
+                            imageChanged = true
+                        },
+                        .cancel()
+                    ]
+                )
+            }
+            .onAppear {
+                loadExistingImage()
+            }
+        }
+    }
+    
+    private func loadExistingImage() {
+        if let imagePath = recipe.image, let uiImage = UIImage(contentsOfFile: imagePath) {
+            currentImage = uiImage
         }
     }
     
@@ -111,6 +192,19 @@ struct EditRecipeView: View {
         // Update the recipe with edited ingredients
         var updatedRecipe = recipe
         updatedRecipe.ingredients = editableIngredients.map { $0.toRecipeIngredient() }
+        
+        // Handle image changes if any
+        if imageChanged {
+            if let selectedImage = selectedImage {
+                // Save the new image
+                if let imagePath = saveImage(selectedImage) {
+                    updatedRecipe.image = imagePath
+                }
+            } else {
+                // Remove the image if user chose to delete it
+                updatedRecipe.image = nil
+            }
+        }
         
         // Find the collection
         if let index = collectionsManager.collections.firstIndex(where: { $0.id == collectionId }) {
@@ -120,6 +214,7 @@ struct EditRecipeView: View {
                 collectionsManager.collections[index].recipes[recipeIndex] = updatedRecipe
                 // Save changes
                 collectionsManager.saveCollections()
+                collectionsManager.objectWillChange.send()
                 // Dismiss the view
                 presentationMode.wrappedValue.dismiss()
             }
@@ -130,4 +225,25 @@ struct EditRecipeView: View {
         collectionsManager.removeRecipeFromCollection(recipeId: recipe.id, collectionId: collectionId)
         presentationMode.wrappedValue.dismiss()
     }
+    
+    private func saveImage(_ image: UIImage) -> String? {
+        guard let data = image.jpegData(compressionQuality: 0.7) else { return nil }
+        
+        let fileName = UUID().uuidString + ".jpg"
+        let fileURL = getDocumentsDirectory().appendingPathComponent(fileName)
+        
+        do {
+            try data.write(to: fileURL)
+            return fileURL.path
+        } catch {
+            print("Error saving image: \(error)")
+            return nil
+        }
+    }
+    
+    private func getDocumentsDirectory() -> URL {
+        let paths = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
+        return paths[0]
+    }
 }
+

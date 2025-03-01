@@ -54,7 +54,6 @@ struct RecipeCard: View {
         .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.black, lineWidth: 1))
         .sheet(isPresented: $showingAddToCollectionSheet) {
             AddToCollectionView(
-                collectionsManager: collectionsManager,
                 recipe: QuickRecipe(
                     id: recipeId,
                     title: recipe,
@@ -62,6 +61,7 @@ struct RecipeCard: View {
                     imageType: "jpg"
                 )
             )
+            .environmentObject(collectionsManager)
         }
     }
     

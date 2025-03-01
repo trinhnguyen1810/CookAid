@@ -9,9 +9,7 @@ class MealPlanManager: ObservableObject {
     init() {
         loadMealPlans()
     }
-    
-    // MARK: - Public Methods
-    
+        
     // Add a recipe to a meal plan
     func addRecipe(recipeId: UUID, title: String, image: String?, date: Date, mealType: MealType) {
         let dateOnly = Calendar.current.startOfDay(for: date)

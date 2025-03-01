@@ -2,13 +2,9 @@ import SwiftUI
 import Foundation
 
 struct AddToCollectionView: View {
-    // Using ObservedObject still, since this is passed from the parent view
-    @ObservedObject var collectionsManager: CollectionsManager
-    
-    // Recipe to be added (could be from different sources)
+    @EnvironmentObject var collectionsManager: CollectionsManager
     var recipe: QuickRecipe
     
-    // Environment variable to dismiss the view
     @Environment(\.presentationMode) var presentationMode
     
     // State variables for creating a new collection
@@ -166,6 +162,9 @@ struct AddToCollectionView: View {
             collectionId: newCollection.id
         )
         
+        // Explicitly trigger UI update
+        collectionsManager.objectWillChange.send()
+        
         // Reset and dismiss
         newCollectionName = ""
         newCollectionDescription = ""
@@ -182,6 +181,9 @@ struct AddToCollectionView: View {
             )
         }
         
+        // Explicitly trigger UI update
+        collectionsManager.objectWillChange.send()
+        
         // Dismiss the view
         presentationMode.wrappedValue.dismiss()
     }
@@ -190,8 +192,10 @@ struct AddToCollectionView: View {
 // Preview for AddToCollectionView
 struct AddToCollectionView_Previews: PreviewProvider {
     static var previews: some View {
-        AddToCollectionView(
-            collectionsManager: CollectionsManager(),
+        let apiManager = RecipeAPIManager()
+        let collectionsManager = CollectionsManager(recipeAPIManager: apiManager)
+        
+        return AddToCollectionView(
             recipe: QuickRecipe(
                 id: 1,
                 title: "Chocolate Cake",
@@ -199,5 +203,6 @@ struct AddToCollectionView_Previews: PreviewProvider {
                 imageType: "jpg"
             )
         )
+        .environmentObject(collectionsManager)
     }
 }

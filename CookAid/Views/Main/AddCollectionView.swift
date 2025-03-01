@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct AddCollectionView: View {
-    @ObservedObject var collectionsManager: CollectionsManager
+    @EnvironmentObject var collectionsManager: CollectionsManager
     @State private var collectionName = ""
     @State private var collectionDescription = ""
     @Environment(\.presentationMode) var presentationMode

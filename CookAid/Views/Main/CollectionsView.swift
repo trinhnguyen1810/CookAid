@@ -5,7 +5,7 @@ typealias RecipeCollection = RecipeCollections.Collection
 typealias CollectionRecipe = RecipeCollections.Recipe
 
 struct CollectionsView: View {
-    @StateObject private var collectionsManager = CollectionsManager()
+    @EnvironmentObject var collectionsManager: CollectionsManager
     @State private var showingAddCollectionSheet = false
     @State private var showingImportRecipeSheet = false
     @State private var showingCreateRecipeSheet = false
@@ -46,14 +46,16 @@ struct CollectionsView: View {
                 }
             }
             .sheet(isPresented: $showingAddCollectionSheet) {
-                AddCollectionView(collectionsManager: collectionsManager)
+                AddCollectionView()
+                    .environmentObject(collectionsManager)
             }
             .sheet(isPresented: $showingImportRecipeSheet) {
                 ImportRecipeView()
                     .environmentObject(collectionsManager)
             }
             .sheet(isPresented: $showingCreateRecipeSheet) {
-                CreateRecipeView(collectionsManager: collectionsManager)
+                CreateRecipeView()
+                    .environmentObject(collectionsManager)
             }
             .confirmationDialog(
                 "Are you sure you want to delete this collection?",
@@ -67,7 +69,6 @@ struct CollectionsView: View {
                     }
                 }
             }
-            .environmentObject(collectionsManager)
         }
     }
 }

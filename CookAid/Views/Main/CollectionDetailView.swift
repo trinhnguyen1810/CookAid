@@ -5,6 +5,7 @@ struct CollectionDetailView: View {
     @EnvironmentObject var collectionsManager: CollectionsManager
     @State private var showingConfirmDeletion = false
     @State private var recipeToDelete: CollectionRecipe?
+    @State private var refreshTrigger = UUID()
     
     var body: some View {
         VStack {
@@ -74,17 +75,24 @@ struct CollectionDetailView: View {
                             )
                             // Reset state
                             recipeToDelete = nil
+                            // Force refresh after deletion
+                            refreshTrigger = UUID()
                         }
                     }
                 }
             }
         }
+        .id(refreshTrigger) // This forces the view to completely redraw when refreshTrigger changes
         .navigationTitle(collection.name)
         .navigationBarItems(trailing:
             NavigationLink(destination: EditCollectionView(collection: collection)) {
                 Text("Edit")
             }
         )
+        .onAppear {
+            // Refresh the view each time it appears
+            refreshTrigger = UUID()
+        }
     }
 }
 

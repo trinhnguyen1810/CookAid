@@ -5,7 +5,7 @@ class RecipeImportManager: ObservableObject {
     func extractRecipeFromURL(urlString: String, completion: @escaping (Result<ImportedRecipeDetail, Error>) -> Void) {
         // RapidAPI headers
         let headers = [
-            "x-rapidapi-key": "98b3e1fa50mshc692e9435ce549bp1a91aajsn27f97bf0ac6d",
+            "x-rapidapi-key": "37b06fda77mshe40431fceb7661cp1422b0jsn4c45f640fc89",
             "x-rapidapi-host": "spoonacular-recipe-food-nutrition-v1.p.rapidapi.com"
         ]
         
