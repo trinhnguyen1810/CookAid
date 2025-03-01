@@ -3,9 +3,12 @@ import SwiftUI
 struct CollectionRecipeDetailView: View {
     var recipe: CollectionRecipe
     var collectionId: UUID
+    @StateObject private var groceryManager = GroceryManager()
     @EnvironmentObject var collectionsManager: CollectionsManager
     @State private var showingEditSheet = false
     @State private var isShowingFullRecipe = false
+    @State private var selectedIngredient: RecipeIngredient? = nil
+    @State private var showCategorySelection = false
     
     var body: some View {
         ScrollView {
@@ -136,6 +139,17 @@ struct CollectionRecipeDetailView: View {
                             ForEach(recipe.ingredients, id: \.id) { ingredient in
                                 Text("\(formatNumber(ingredient.amount)) \(ingredient.unit) \(ingredient.name)")
                                     .font(.custom("Cochin", size: 16))
+                                    .foregroundColor(.black)
+                                    .padding(.vertical, 4)
+                                    .background(
+                                        RoundedRectangle(cornerRadius: 4)
+                                            .fill(Color.gray.opacity(0.1))
+                                            .padding(-2)
+                                    )
+                                    .onTapGesture {
+                                        selectedIngredient = ingredient
+                                        showCategorySelection = true
+                                    }
                             }
                         }
                     }
@@ -171,6 +185,14 @@ struct CollectionRecipeDetailView: View {
                 recipe: recipe,
                 collectionId: collectionId
             )
+        }
+        .sheet(isPresented: $showCategorySelection) {
+            if let ingredient = selectedIngredient {
+                CategorySelectionView(
+                    ingredient: ingredient,
+                    groceryManager: groceryManager
+                )
+            }
         }
         .background(
             NavigationLink(
