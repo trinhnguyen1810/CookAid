@@ -10,7 +10,7 @@ class RecipeAPIManager: ObservableObject {
     
     // RapidAPI headers
     private let headers: [String: String] = [
-        "x-rapidapi-key": "37b06fda77mshe40431fceb7661cp1422b0jsn4c45f640fc89",
+        "x-rapidapi-key": "98b3e1fa50mshc692e9435ce549bp1a91aajsn27f97bf0ac6d",
         "x-rapidapi-host": "spoonacular-recipe-food-nutrition-v1.p.rapidapi.com"
     ]
     
@@ -25,7 +25,7 @@ class RecipeAPIManager: ObservableObject {
         
         urlComponents.queryItems = [
             URLQueryItem(name: "ingredients", value: ingredientsString),
-            URLQueryItem(name: "number", value: "1"),
+            URLQueryItem(name: "number", value: "10"),
             URLQueryItem(name: "ignorePantry", value: "true"),
             URLQueryItem(name: "ranking", value: "1")
         ]
@@ -121,7 +121,7 @@ class RecipeAPIManager: ObservableObject {
         urlComponents.queryItems = [
             URLQueryItem(name: "includeIngredients", value: ingredientsString),
             URLQueryItem(name: "maxReadyTime", value: "30"),
-            URLQueryItem(name: "number", value: "5"),
+            URLQueryItem(name: "number", value: "10"),
             URLQueryItem(name: "ranking", value: "2")
         ]
         
