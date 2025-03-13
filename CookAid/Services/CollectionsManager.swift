@@ -6,7 +6,6 @@ class CollectionsManager: ObservableObject {
     @Published var collections: [RecipeCollections.Collection] = []
     private let collectionsKey = "userRecipeCollections"
     private let recipeAPIManager: RecipeAPIManager
-    // Initializer with provided RecipeAPIManager
     init(recipeAPIManager: RecipeAPIManager) {
         self.recipeAPIManager = recipeAPIManager
         loadCollections()
@@ -51,6 +50,8 @@ class CollectionsManager: ObservableObject {
         let newCollection = RecipeCollections.Collection(name: name, description: description)
         collections.append(newCollection)
         saveCollections()
+        // Explicitly notify observers of the change
+        objectWillChange.send()
     }
     
     // Add recipe to a specific collection (from RecipeDetail)
@@ -62,6 +63,8 @@ class CollectionsManager: ObservableObject {
             if !collections[index].recipes.contains(where: { $0.originalRecipeId == recipeDetail.id }) {
                 collections[index].recipes.append(collectionRecipe)
                 saveCollections()
+                // Explicitly notify observers of the change
+                objectWillChange.send()
             }
         }
     }
@@ -97,11 +100,17 @@ class CollectionsManager: ObservableObject {
                     }
                 }
             }
+            
+            // Save and notify even before details are fetched to show immediate UI feedback
+            saveCollections()
+            objectWillChange.send()
         }
     }
     
     // Add recipe to a specific collection (from ImportedRecipeDetail)
     func addRecipeToCollection(importedRecipe: ImportedRecipeDetail, collectionId: UUID) {
+        print("Adding imported recipe '\(importedRecipe.title)' to collection ID: \(collectionId)")
+        
         // Create the recipe from imported recipe
         let collectionRecipe = RecipeCollections.Recipe(
             title: importedRecipe.title,
@@ -116,7 +125,6 @@ class CollectionsManager: ObservableObject {
                         metric: MeasureUnit(amount: $0.amount, unitShort: $0.unit, unitLong: $0.unit),
                         us: MeasureUnit(amount: $0.amount, unitShort: $0.unit, unitLong: $0.unit)
                     )
-
                 )
             },
             instructions: importedRecipe.instructionSteps,
@@ -126,6 +134,7 @@ class CollectionsManager: ObservableObject {
         )
         
         if let index = collections.firstIndex(where: { $0.id == collectionId }) {
+            print("Found collection at index \(index)")
             // Check if recipe already exists in the collection
             if !collections[index].recipes.contains(where: {
                 if let originalId = $0.originalRecipeId, let importedId = importedRecipe.id {
@@ -135,7 +144,14 @@ class CollectionsManager: ObservableObject {
             }) {
                 collections[index].recipes.append(collectionRecipe)
                 saveCollections()
+                // Explicitly notify observers of the change
+                objectWillChange.send()
+                print("Recipe added successfully to collection")
+            } else {
+                print("Recipe already exists in collection")
             }
+        } else {
+            print("Collection not found with ID: \(collectionId)")
         }
     }
 
@@ -153,6 +169,8 @@ class CollectionsManager: ObservableObject {
     func deleteCollection(collectionId: UUID) {
         collections.removeAll { $0.id == collectionId }
         saveCollections()
+        // Explicitly notify observers of the change
+        objectWillChange.send()
     }
     
     // Update a collection
@@ -165,6 +183,8 @@ class CollectionsManager: ObservableObject {
                 collections[index].description = newDescription
             }
             saveCollections()
+            // Explicitly notify observers of the change
+            objectWillChange.send()
         }
     }
     

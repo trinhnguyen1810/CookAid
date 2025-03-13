@@ -51,3 +51,4 @@ struct APIConfig {
 enum APIService: String {
     case spoonacular = "RAPIDAPI_KEY"
 }
+

@@ -273,20 +273,6 @@ struct MyPantryView: View {
                     .foregroundColor(.black)
                 Spacer()
 
-                HStack(spacing: 10) {
-                    Button(action: {
-                        // Action for camera
-                    }) {
-                        HStack {
-                            Image(systemName: "camera")
-                                .foregroundColor(.white)
-                        }
-                        .padding(.vertical, 12)
-                        .padding(.horizontal, 16)
-                        .background(Color.black)
-                        .cornerRadius(8)
-                    }
-
                     // Plus Button to add ingredient
                     Button(action: {
                         showingAddIngredientView = true // Show the AddIngredientView
@@ -312,7 +298,7 @@ struct MyPantryView: View {
             PantryItemsRow(items: row2Items)
         }
     }
-}
+
 
 struct PantryItemsRow: View {
     var items: [String]

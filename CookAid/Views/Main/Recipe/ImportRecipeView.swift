@@ -12,6 +12,7 @@ struct ImportRecipeView: View {
     // Managers for recipe import and collection management
     @StateObject private var recipeImportManager = RecipeImportManager()
     @EnvironmentObject var collectionsManager: CollectionsManager
+    @Environment(\.presentationMode) var presentationMode
     
     var body: some View {
         NavigationStack {
@@ -30,8 +31,16 @@ struct ImportRecipeView: View {
             }
             .navigationTitle("Import Recipe")
             .padding()
-            .sheet(isPresented: $showingCollectionSelection) {
-                collectionSelectionSheet
+            .sheet(isPresented: $showingCollectionSelection, onDismiss: {
+                // When sheet is dismissed, check if collections have been updated
+                // We don't actually need special handling here since the ImportToCollectionView
+                // will trigger the appropriate UI updates
+            }) {
+                // Only show sheet when we have a recipe
+                if let recipe = importedRecipe {
+                    ImportToCollectionView(recipe: recipe)
+                        .environmentObject(collectionsManager)
+                }
             }
         }
     }
@@ -95,20 +104,13 @@ struct ImportRecipeView: View {
                     ImportedRecipePreviewView(
                         recipe: recipe,
                         onAddToCollection: {
-                            showingCollectionSelection = true
+                            // Make sure CollectionsManager is ready before showing the sheet
+                            DispatchQueue.main.async {
+                                showingCollectionSelection = true
+                            }
                         }
                     )
                 }
-            }
-        }
-    }
-    
-    // Collection Selection Sheet
-    private var collectionSelectionSheet: some View {
-        Group {
-            if let recipe = importedRecipe {
-                ImportToCollectionView(recipe: recipe)
-
             }
         }
     }
@@ -128,8 +130,10 @@ struct ImportRecipeView: View {
                 switch result {
                 case .success(let recipe):
                     importedRecipe = recipe
+                    print("Successfully imported recipe: \(recipe.title)")
                 case .failure(let error):
                     errorMessage = handleImportError(error)
+                    print("Failed to import recipe: \(error.localizedDescription)")
                 }
             }
         }
@@ -150,13 +154,5 @@ struct ImportRecipeView: View {
         default:
             return error.localizedDescription
         }
-    }
-}
-
-// Preview for Import Recipe View
-struct ImportRecipeView_Previews: PreviewProvider {
-    static var previews: some View {
-        ImportRecipeView()
-            .environmentObject(CollectionsManager())
     }
 }
