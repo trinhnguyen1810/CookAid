@@ -8,11 +8,9 @@ class RecipeAPIManager: ObservableObject {
     @Published var errorMessage: String? = nil
     @Published var isLoading: Bool = false
     
-    // RapidAPI headers
-    private let headers: [String: String] = [
-        "x-rapidapi-key": "98b3e1fa50mshc692e9435ce549bp1a91aajsn27f97bf0ac6d",
-        "x-rapidapi-host": "spoonacular-recipe-food-nutrition-v1.p.rapidapi.com"
-    ]
+    private var headers: [String: String] {
+        return APIConfig.shared.headers(for: .spoonacular)
+    }
     
     @MainActor
     func fetchRecipes(ingredients: [String], diets: [String] = [], intolerances: [String] = []) {
@@ -72,6 +70,7 @@ class RecipeAPIManager: ObservableObject {
             }
         }.resume()
     }
+    
     
     func fetchRecipeDetail(id: Int) async -> RecipeDetail? {
         guard let url = URL(string: "https://spoonacular-recipe-food-nutrition-v1.p.rapidapi.com/recipes/\(id)/information") else {
