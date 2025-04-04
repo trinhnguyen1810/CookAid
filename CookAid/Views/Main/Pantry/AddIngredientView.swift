@@ -18,21 +18,30 @@ struct AddIngredientView: View {
                 Section(header: Text("Add Ingredient")) {
                     TextField("Ingredient Name", text: $name)
                         .font(.custom("Cochin", size: 18))
-
-                    Picker(selection: $category, label: Text("Category").font(.custom("Cochin", size: 18))) {
-                        ForEach(categories, id: \.self) { category in
-                            Text(category) // Default font for picker options
+                        .onChange(of: name) { newValue in
+                            // Auto-categorize the ingredient as user types
+                            if !newValue.isEmpty {
+                                category = IngredientCategorizer.categorize(newValue)
+                            }
+                        }
+                    
+                    // Simple picker with pre-selected category
+                    Picker("Category", selection: $category) {
+                        ForEach(IngredientCategorizer.categories, id: \.self) { category in
+                            Text(category)
+                                .font(.custom("Cochin", size: 18))
                         }
                     }
-                    .pickerStyle(MenuPickerStyle()) // Keep the menu style
-
+                    .pickerStyle(MenuPickerStyle())
+                    .font(.custom("Cochin", size: 18))
+                    
                     DatePicker("Date Bought (optional)", selection: Binding(
-                        get: { dateBought ?? Date() }, // Provide a default date if nil
-                        set: { dateBought = $0 } // Set the date
+                        get: { dateBought ?? Date() },
+                        set: { dateBought = $0 }
                     ), displayedComponents: .date)
                     .font(.custom("Cochin", size: 18))
                 }
-
+                
                 Button("Add Ingredient") {
                     addIngredient()
                 }
@@ -44,11 +53,6 @@ struct AddIngredientView: View {
             }
             .navigationTitle("Add Ingredient")
             .navigationBarTitleDisplayMode(.inline)
-            .alert("Duplicate Ingredient", isPresented: $showDuplicateAlert) {
-                Button("OK", role: .cancel) { }
-            } message: {
-                Text("This ingredient already exists in your pantry.")
-            }
         }
     }
 

@@ -4,23 +4,23 @@ struct CategorySelectionView: View {
     let ingredient: RecipeIngredient
     let groceryManager: GroceryManager
     let onAdd: () -> Void
-    @State private var selectedCategory: String = "Others"
+    
+    // Initialize with auto-selected category based on ingredient name
+    @State private var selectedCategory: String
     @Environment(\.presentationMode) var presentationMode
     
-    // Available categories
-    let categories = [
-        "Fruits & Vegetables",
-        "Proteins",
-        "Dairy & Dairy Alternatives",
-        "Grains and Legumes",
-        "Spices, Seasonings and Herbs",
-        "Sauces and Condiments",
-        "Baking Essentials",
-        "Others"
-    ]
+    init(ingredient: RecipeIngredient, groceryManager: GroceryManager, onAdd: @escaping () -> Void) {
+        self.ingredient = ingredient
+        self.groceryManager = groceryManager
+        self.onAdd = onAdd
+        
+        // Auto-select a category based on the ingredient name
+        let autoCategory = IngredientCategorizer.categorize(ingredient.name)
+        _selectedCategory = State(initialValue: autoCategory)
+    }
     
     var body: some View {
-        VStack {
+        VStack(spacing: 20) {
             Text("Adding to Grocery List:")
                 .font(.custom("Cochin", size: 20))
                 .padding(.top)
@@ -29,32 +29,25 @@ struct CategorySelectionView: View {
                 .font(.custom("Cochin", size: 22))
                 .fontWeight(.bold)
                 .padding(.bottom)
-                
-            Text("Select a category")
-                .font(.custom("Cochin", size: 18))
-                .foregroundColor(.gray)
-                .padding(.bottom, 5)
             
-            List {
-                ForEach(categories, id: \.self) { category in
-                    Button(action: {
-                        selectedCategory = category
-                    }) {
-                        HStack {
-                            Text(category)
-                                .font(.custom("Cochin", size: 18))
-                            
-                            Spacer()
-                            
-                            if category == selectedCategory {
-                                Image(systemName: "checkmark")
-                                    .foregroundColor(.black)
-                            }
-                        }
-                    }
-                    .buttonStyle(PlainButtonStyle())
+            // Display ingredient amount and unit if available
+            if ingredient.amount > 0 {
+                Text("\(formatNumber(ingredient.amount)) \(ingredient.unit)")
+                    .font(.custom("Cochin", size: 18))
+                    .foregroundColor(.gray)
+                    .padding(.bottom, 10)
+            }
+            
+            // Use a simple picker with pre-selected category
+            Picker("Category", selection: $selectedCategory) {
+                ForEach(IngredientCategorizer.categories, id: \.self) { category in
+                    Text(category)
+                        .font(.custom("Cochin", size: 18))
                 }
             }
+            .pickerStyle(WheelPickerStyle())
+            .frame(height: 150)
+            .padding(.horizontal)
             
             Button(action: {
                 addToGroceryList()

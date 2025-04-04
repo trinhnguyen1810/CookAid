@@ -26,34 +26,6 @@ struct PantryView: View {
                             Spacer()
                             
                             HStack(spacing: 10) {
-                                // Camera Button
-                                Button(action: {
-                                    // Handle scan recipe action
-                                }) {
-                                    HStack {
-                                        Image(systemName: "camera")
-                                            .foregroundColor(.white)
-                                    }
-                                    .padding(.vertical, 10)
-                                    .padding(.horizontal, 15)
-                                    .background(Color.black)
-                                    .cornerRadius(8)
-                                }
-                                
-                                // Sort Button
-                                Button(action: {
-                                    // Handle sort action
-                                }) {
-                                    HStack {
-                                        Image(systemName: "arrow.up.arrow.down")
-                                            .foregroundColor(.white)
-                                    }
-                                    .padding(.vertical, 10)
-                                    .padding(.horizontal, 15)
-                                    .background(Color.black)
-                                    .cornerRadius(8)
-                                }
-                                
                                 // Plus Button
                                 Button(action: {
                                     showAddIngredient.toggle()
