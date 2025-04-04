@@ -9,6 +9,9 @@ struct CollectionRecipeDetailView: View {
     @State private var isShowingFullRecipe = false
     @State private var selectedIngredient: RecipeIngredient? = nil
     @State private var showCategorySelection = false
+    @State private var showingAddAllConfirmation = false
+    @State private var addedMessage = ""
+    @State private var showingAlert = false
     
     var body: some View {
         ScrollView {
@@ -178,6 +181,22 @@ struct CollectionRecipeDetailView: View {
                                         .padding(-2)
                                 )
                             }
+                            
+                            // Add "Add All to Grocery List" button
+                            Button(action: {
+                                showingAddAllConfirmation = true
+                            }) {
+                                HStack {
+                                    Image(systemName: "cart.fill.badge.plus")
+                                    Text("Add All to Grocery List")
+                                }
+                                .padding()
+                                .frame(maxWidth: .infinity)
+                                .background(Color.blue.opacity(0.2))
+                                .foregroundColor(.blue)
+                                .cornerRadius(8)
+                            }
+                            .padding(.top, 12)
                         }
                     }
                     .padding(.horizontal)
@@ -252,6 +271,18 @@ struct CollectionRecipeDetailView: View {
                 EmptyView()
             }
         )
+        .confirmationDialog(
+            "Add all ingredients to grocery list?",
+            isPresented: $showingAddAllConfirmation,
+            titleVisibility: .visible
+        ) {
+            Button("Add All") {
+                addAllIngredientsToGrocery()
+            }
+        }
+        .alert(addedMessage, isPresented: $showingAlert) {
+            Button("OK", role: .cancel) { }
+        }
     }
     
     private func formatNumber(_ number: Double) -> String {
@@ -267,6 +298,126 @@ struct CollectionRecipeDetailView: View {
         case .custom:
             return "Custom Recipe"
         }
+    }
+    
+    private func addAllIngredientsToGrocery() {
+        // Count of successfully added ingredients
+        var addedCount = 0
+        var skippedCount = 0
+        
+        // Loop through all ingredients
+        for ingredient in recipe.ingredients {
+            // Format the ingredient string
+            let groceryItemName = "\(ingredient.name) - \(formatNumber(ingredient.amount)) \(ingredient.unit)"
+            
+            // Check if this ingredient is already in the grocery list to avoid duplicates
+            let isDuplicate = groceryManager.groceryItems.contains { item in
+                item.name.lowercased() == groceryItemName.lowercased()
+            }
+            
+            // Only add if it's not a duplicate
+            if !isDuplicate {
+                // Create a new grocery item
+                let groceryItem = GroceryItem(
+                    id: UUID().uuidString,
+                    name: groceryItemName,
+                    category: determineCategoryForIngredient(ingredient.name),
+                    completed: false
+                )
+                
+                // Add to grocery list
+                groceryManager.addGroceryItem(groceryItem)
+                addedCount += 1
+            } else {
+                skippedCount += 1
+            }
+        }
+        
+        // Show success message
+        if skippedCount > 0 {
+            addedMessage = "Added \(addedCount) ingredients to your grocery list! (Skipped \(skippedCount) duplicates)"
+        } else {
+            addedMessage = "Added \(addedCount) ingredients to your grocery list!"
+        }
+        showingAlert = true
+    }
+    
+    // Helper function to intelligently assign a category based on ingredient name
+    private func determineCategoryForIngredient(_ name: String) -> String {
+        let lowercaseName = name.lowercased()
+        
+        // Fruits & Vegetables
+        if lowercaseName.contains("apple") ||
+           lowercaseName.contains("banana") ||
+           lowercaseName.contains("orange") ||
+           lowercaseName.contains("carrot") ||
+           lowercaseName.contains("broccoli") ||
+           lowercaseName.contains("pepper") ||
+           lowercaseName.contains("onion") ||
+           lowercaseName.contains("tomato") ||
+           lowercaseName.contains("lettuce") ||
+           lowercaseName.contains("spinach") ||
+           lowercaseName.contains("celery") ||
+           lowercaseName.contains("avocado") {
+            return "Fruits & Vegetables"
+        }
+        
+        // Protein sources
+        if lowercaseName.contains("chicken") ||
+           lowercaseName.contains("beef") ||
+           lowercaseName.contains("pork") ||
+           lowercaseName.contains("fish") ||
+           lowercaseName.contains("salmon") ||
+           lowercaseName.contains("tuna") ||
+           lowercaseName.contains("shrimp") ||
+           lowercaseName.contains("egg") ||
+           lowercaseName.contains("tofu") {
+            return "Proteins"
+        }
+        
+        // Dairy & Alternatives
+        if lowercaseName.contains("milk") ||
+           lowercaseName.contains("cheese") ||
+           lowercaseName.contains("yogurt") ||
+           lowercaseName.contains("cream") ||
+           lowercaseName.contains("butter") {
+            return "Dairy & Dairy Alternatives"
+        }
+        
+        // Grains and Legumes
+        if lowercaseName.contains("rice") ||
+           lowercaseName.contains("pasta") ||
+           lowercaseName.contains("bread") ||
+           lowercaseName.contains("flour") ||
+           lowercaseName.contains("oat") ||
+           lowercaseName.contains("bean") ||
+           lowercaseName.contains("lentil") {
+            return "Grains and Legumes"
+        }
+        
+        // Spices, Seasonings and Herbs
+        if lowercaseName.contains("salt") ||
+           lowercaseName.contains("pepper") ||
+           lowercaseName.contains("oregano") ||
+           lowercaseName.contains("basil") ||
+           lowercaseName.contains("thyme") ||
+           lowercaseName.contains("spice") ||
+           lowercaseName.contains("garlic") {
+            return "Spices, Seasonings and Herbs"
+        }
+        
+        // Sauces and Condiments
+        if lowercaseName.contains("sauce") ||
+           lowercaseName.contains("ketchup") ||
+           lowercaseName.contains("mustard") ||
+           lowercaseName.contains("mayo") ||
+           lowercaseName.contains("dressing") ||
+           lowercaseName.contains("oil") {
+            return "Sauces and Condiments"
+        }
+        
+        // Default category if no match is found
+        return "Others"
     }
 }
 
