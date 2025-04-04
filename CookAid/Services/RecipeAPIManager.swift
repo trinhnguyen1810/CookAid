@@ -24,7 +24,7 @@ class RecipeAPIManager: ObservableObject {
         
         urlComponents.queryItems = [
             URLQueryItem(name: "ingredients", value: ingredientsString),
-            URLQueryItem(name: "number", value: "10"),
+            URLQueryItem(name: "number", value: "2"),
             URLQueryItem(name: "ignorePantry", value: "true"),
             URLQueryItem(name: "ranking", value: "1")
         ]
@@ -120,7 +120,7 @@ class RecipeAPIManager: ObservableObject {
         urlComponents.queryItems = [
             URLQueryItem(name: "includeIngredients", value: ingredientsString),
             URLQueryItem(name: "maxReadyTime", value: "30"),
-            URLQueryItem(name: "number", value: "10"),
+            URLQueryItem(name: "number", value: "1"),
             URLQueryItem(name: "ranking", value: "2")
         ]
         
@@ -191,7 +191,7 @@ class RecipeAPIManager: ObservableObject {
         
         var queryItems: [URLQueryItem] = [
             URLQueryItem(name: "query", value: query),
-            URLQueryItem(name: "number", value: "10"),
+            URLQueryItem(name: "number", value: "1"),
             URLQueryItem(name: "addRecipeInformation", value: "true")
         ]
         

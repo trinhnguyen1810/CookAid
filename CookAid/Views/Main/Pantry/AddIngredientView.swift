@@ -6,6 +6,7 @@ import FirebaseFirestore
 struct AddIngredientView: View {
     @Binding var ingredients: [Ingredient] // Binding to update the pantry
     @State private var name: String = ""
+    @State private var showDuplicateAlert = false
     @Environment(\.presentationMode) var presentationMode
     @State private var category: String = "Others"
     @State private var dateBought: Date? = Date()
@@ -43,13 +44,31 @@ struct AddIngredientView: View {
             }
             .navigationTitle("Add Ingredient")
             .navigationBarTitleDisplayMode(.inline)
+            .alert("Duplicate Ingredient", isPresented: $showDuplicateAlert) {
+                Button("OK", role: .cancel) { }
+            } message: {
+                Text("This ingredient already exists in your pantry.")
+            }
         }
     }
 
     private func addIngredient() {
-        let newIngredient = Ingredient(id: UUID().uuidString, name: name, dateBought: dateBought, category: category)
-        ingredients.append(newIngredient) // Update local state
-        saveIngredientToFirestore(ingredient: newIngredient) // Save to Firestore
+        // Check if ingredient with same name already exists (case-insensitive comparison)
+        let ingredientName = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        
+        // Don't add if name is empty
+        guard !ingredientName.isEmpty else { return }
+        
+        // Check for duplicates (case-insensitive)
+        if ingredients.contains(where: { $0.name.lowercased() == ingredientName.lowercased() }) {
+            // Show alert for duplicate ingredient
+            showDuplicateAlert = true
+            return
+        }
+        
+        let newIngredient = Ingredient(id: UUID().uuidString, name: ingredientName, dateBought: dateBought, category: category)
+        ingredients.append(newIngredient)
+        saveIngredientToFirestore(ingredient: newIngredient)
     }
 
     private func saveIngredientToFirestore(ingredient: Ingredient) {

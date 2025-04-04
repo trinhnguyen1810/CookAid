@@ -1,10 +1,15 @@
 import SwiftUI
+import Firebase
+import FirebaseFirestore
 
 struct PantryView: View {
     @StateObject private var ingredientsManager = IngredientsManager()
     @State private var showAddIngredient = false
     @State private var searchText: String = ""
     @State private var selectedIngredient: Ingredient? // To hold the ingredient to edit
+    @State private var isDragging = false
+    @State private var draggedIngredient: Ingredient?
+    @State private var targetCategory: String?
 
     var body: some View {
         NavigationView {
@@ -97,19 +102,73 @@ struct PantryView: View {
                                     .fontWeight(.bold)
                                     .padding(.top, 20)
                                     .padding(.horizontal)
+                                    .background(targetCategory == category ? Color.blue.opacity(0.1) : Color.clear)
+                                    .cornerRadius(8)
                                 
-                                // LazyVGrid for two cards in a row
-                                LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 2), spacing: 10) {
-                                    // Get ingredients for the current category or an empty array if none exist
-                                    let ingredientsInCategory = groupedIngredients[category] ?? []
-                                    
-                                    ForEach(ingredientsInCategory) { ingredient in
-                                        IngredientCard(ingredient: ingredient, ingredients: $ingredientsManager.ingredients)
-                                            .padding(.horizontal)
-                                            .padding(.top, 10)
-                                            .onTapGesture {
-                                                selectedIngredient = ingredient // Set the selected ingredient for editing on tap
+                                // We'll wrap everything in a ZStack to allow dropping on empty categories
+                                ZStack {
+                                    // This Rectangle serves as a drop target for empty categories
+                                    Rectangle()
+                                        .fill(Color.clear)
+                                        .frame(height: groupedIngredients[category]?.isEmpty ?? true ? 100 : 0)
+                                        .dropDestination(for: String.self) { items, location in
+                                            guard let draggedIngredient = draggedIngredient else { return false }
+                                            
+                                            // Check if the dragged ingredient is from a different category
+                                            if draggedIngredient.category != category {
+                                                moveIngredient(draggedIngredient, toCategory: category)
+                                                return true
                                             }
+                                            return false
+                                        } isTargeted: { isTargeted in
+                                            targetCategory = isTargeted ? category : nil
+                                        }
+                                    
+                                    // LazyVGrid for two cards in a row
+                                    LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 2), spacing: 10) {
+                                        // Get ingredients for the current category or an empty array if none exist
+                                        let ingredientsInCategory = groupedIngredients[category] ?? []
+                                        
+                                        if ingredientsInCategory.isEmpty {
+                                            // Show an empty state for categories with no ingredients
+                                            Text("Drag ingredients here")
+                                                .font(.custom("Cochin", size: 16))
+                                                .italic()
+                                                .foregroundColor(.gray)
+                                                .frame(maxWidth: .infinity)
+                                                .padding()
+                                        } else {
+                                            ForEach(ingredientsInCategory) { ingredient in
+                                                IngredientCard(
+                                                    ingredient: ingredient,
+                                                    ingredients: $ingredientsManager.ingredients,
+                                                    isDragging: $isDragging,
+                                                    draggedIngredient: $draggedIngredient
+                                                )
+                                                .padding(.horizontal)
+                                                .padding(.top, 10)
+                                                .onTapGesture {
+                                                    selectedIngredient = ingredient // Set the selected ingredient for editing on tap
+                                                }
+                                                .onDrag {
+                                                    draggedIngredient = ingredient
+                                                    isDragging = true
+                                                    return NSItemProvider(object: ingredient.id as NSString)
+                                                }
+                                            }
+                                        }
+                                    }
+                                    .dropDestination(for: String.self) { items, location in
+                                        guard let draggedIngredient = draggedIngredient else { return false }
+                                        
+                                        // Check if the dragged ingredient is from a different category
+                                        if draggedIngredient.category != category {
+                                            moveIngredient(draggedIngredient, toCategory: category)
+                                            return true
+                                        }
+                                        return false
+                                    } isTargeted: { isTargeted in
+                                        targetCategory = isTargeted ? category : nil
                                     }
                                 }
                             }
@@ -131,12 +190,30 @@ struct PantryView: View {
             .sheet(isPresented: $showAddIngredient) {
                 AddIngredientView(ingredients: $ingredientsManager.ingredients)
             }
+            .onChange(of: isDragging) { dragging in
+                if !dragging {
+                    // Reset when drag ends
+                    targetCategory = nil
+                    draggedIngredient = nil
+                }
+            }
+        }
+    }
+    
+    private func moveIngredient(_ ingredient: Ingredient, toCategory category: String) {
+        Task {
+            await ingredientsManager.updateIngredientCategory(ingredient, newCategory: category)
+            // Reset drag state
+            isDragging = false
+            draggedIngredient = nil
         }
     }
     
     struct IngredientCard: View {
         let ingredient: Ingredient
-        @Binding var ingredients: [Ingredient] // Add binding to ingredients
+        @Binding var ingredients: [Ingredient]
+        @Binding var isDragging: Bool
+        @Binding var draggedIngredient: Ingredient?
 
         var body: some View {
             VStack {
@@ -158,12 +235,56 @@ struct PantryView: View {
             .background(Color.white)
             .cornerRadius(12)
             .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: 2)
+            // Add visual feedback when dragging
+            .opacity(isDragging && draggedIngredient?.id == ingredient.id ? 0.5 : 1.0)
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(isDragging && draggedIngredient?.id == ingredient.id ? Color.blue : Color.clear, lineWidth: 2)
+            )
         }
     }
-    
-    struct PantryView_Previews: PreviewProvider {
-        static var previews: some View {
-            PantryView()
+}
+
+// Extension for IngredientsManager to add the updateIngredientCategory method
+extension IngredientsManager {
+    @MainActor
+    func updateIngredientCategory(_ ingredient: Ingredient, newCategory: String) async {
+        guard let currentUser = Auth.auth().currentUser else {
+            print("No authenticated user found")
+            return
         }
+        
+        // Create updated ingredient with new category
+        let updatedIngredient = Ingredient(
+            id: ingredient.id,
+            name: ingredient.name,
+            dateBought: ingredient.dateBought,
+            category: newCategory
+        )
+        
+        // Update in Firestore
+        let db = Firestore.firestore()
+        do {
+            try await db.collection("users")
+                .document(currentUser.uid)
+                .collection("ingredients")
+                .document(ingredient.id)
+                .setData(from: updatedIngredient)
+            
+            // Update in local state
+            if let index = ingredients.firstIndex(where: { $0.id == ingredient.id }) {
+                ingredients[index] = updatedIngredient
+            }
+            
+            print("Ingredient category updated successfully")
+        } catch {
+            print("Error updating ingredient category: \(error.localizedDescription)")
+        }
+    }
+}
+
+struct PantryView_Previews: PreviewProvider {
+    static var previews: some View {
+        PantryView()
     }
 }
