@@ -9,6 +9,9 @@ struct GroceryView: View {
     @State private var itemToDelete: GroceryItem? // The item to delete
     @State private var itemToAddToPantry: GroceryItem? // The item to add to pantry
     @State private var showActionAlert = false // State to show action alert
+    @State private var isAddingNewItem = false // State for inline adding of new items
+    @State private var newItemName = ""
+    @State private var newItemCategory = "Others"
 
     var body: some View {
         NavigationStack {
@@ -28,7 +31,7 @@ struct GroceryView: View {
 
                         // Search Bar
                         HStack {
-                            TextField("Search ingredients...", text: $searchText)
+                            TextField("Search items...", text: $searchText)
                                 .padding(10)
                                 .font(.custom("Cochin", size: 18))
                                 .background(Color.white)
@@ -36,14 +39,84 @@ struct GroceryView: View {
                                 .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: 2)
 
                             Button(action: {
-                                showAddGrocery.toggle() // Show the add grocery view
+                                withAnimation {
+                                    isAddingNewItem.toggle() // Toggle inline adding
+                                    if !isAddingNewItem {
+                                        newItemName = ""
+                                    }
+                                }
                             }) {
-                                Image(systemName: "plus")
+                                Image(systemName: isAddingNewItem ? "xmark" : "plus")
                                     .foregroundColor(.black)
                                     .padding()
                             }
                         }
                         .padding(.horizontal)
+                        
+                        // New Item Entry (Inline)
+                        if isAddingNewItem {
+                            VStack(alignment: .leading, spacing: 8) {
+                                TextField("New item name", text: $newItemName)
+                                    .font(.custom("Cochin", size: 16))
+                                    .padding(8)
+                                    .background(Color.white)
+                                    .cornerRadius(8)
+                                    .shadow(color: Color.black.opacity(0.1), radius: 2, x: 0, y: 1)
+                                
+                                // Category Picker
+                                Menu {
+                                    ForEach([
+                                        "Fruits & Vegetables",
+                                        "Proteins",
+                                        "Dairy & Dairy Alternatives",
+                                        "Grains and Legumes",
+                                        "Spices, Seasonings and Herbs",
+                                        "Sauces and Condiments",
+                                        "Baking Essentials",
+                                        "Others"
+                                    ], id: \.self) { category in
+                                        Button(action: {
+                                            newItemCategory = category
+                                        }) {
+                                            HStack {
+                                                Text(category)
+                                                if category == newItemCategory {
+                                                    Image(systemName: "checkmark")
+                                                }
+                                            }
+                                        }
+                                    }
+                                } label: {
+                                    HStack {
+                                        Text(newItemCategory)
+                                            .font(.custom("Cochin", size: 14))
+                                        Image(systemName: "chevron.down")
+                                            .font(.caption)
+                                    }
+                                    .padding(6)
+                                    .background(Color.gray.opacity(0.1))
+                                    .cornerRadius(6)
+                                }
+                                
+                                // Add button
+                                Button(action: addNewItem) {
+                                    Text("Add Item")
+                                        .font(.custom("Cochin", size: 16))
+                                        .padding(.vertical, 8)
+                                        .padding(.horizontal, 16)
+                                        .background(newItemName.isEmpty ? Color.gray.opacity(0.3) : Color.black)
+                                        .foregroundColor(newItemName.isEmpty ? Color.gray : Color.white)
+                                        .cornerRadius(8)
+                                }
+                                .disabled(newItemName.isEmpty)
+                            }
+                            .padding(.horizontal, 20)
+                            .padding(.vertical, 10)
+                            .background(Color.gray.opacity(0.05))
+                            .cornerRadius(12)
+                            .padding(.horizontal)
+                            .padding(.bottom, 10)
+                        }
 
                         let customOrder = [
                             "Fruits & Vegetables",
@@ -61,52 +134,41 @@ struct GroceryView: View {
                         }) { $0.category }
 
                         ForEach(customOrder, id: \.self) { category in
-                            VStack(alignment: .leading) {
-                                Text(category)
-                                    .font(.custom("Cochin", size: 22))
-                                    .fontWeight(.bold)
-                                    .padding(.top, 20)
-                                    .padding(.horizontal)
-
-                                ForEach(groupedIngredients[category] ?? []) { ingredient in
-                                    Text(ingredient.name)
-                                        .font(.custom("Cochin", size: 18))
-                                        .foregroundColor(.black)
+                            if let items = groupedIngredients[category], !items.isEmpty {
+                                VStack(alignment: .leading) {
+                                    Text(category)
+                                        .font(.custom("Cochin", size: 22))
+                                        .fontWeight(.bold)
+                                        .padding(.top, 20)
                                         .padding(.horizontal)
-                                        .padding(.vertical, 5)
-                                        .background(Color.white)
-                                        .cornerRadius(8)
-                                        .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: 2)
-                                        .strikethrough(ingredient.completed) // Apply strikethrough based on completion
-                                        .onTapGesture {
-                                            toggleCompletion(for: ingredient) // Toggle completion on tap
-                                        }
-                                        .onLongPressGesture {
-                                            itemToAddToPantry = ingredient // Set the item to add to pantry
-                                            showActionAlert = true // Show action options
-                                        }
+
+                                    ForEach(items) { item in
+                                        EditableGroceryItem(groceryManager: groceryManager, groceryItem: item)
+                                            .padding(.horizontal)
+                                            .padding(.vertical, 3)
+                                    }
                                 }
                             }
                         }
+                        
+                        // Empty state if no items match search
+                        if groceryManager.groceryItems.filter({ item in
+                            searchText.isEmpty || item.name.lowercased().contains(searchText.lowercased())
+                        }).isEmpty {
+                            VStack {
+                                Text("No items found")
+                                    .font(.custom("Cochin", size: 18))
+                                    .foregroundColor(.gray)
+                                    .padding()
+                                    .frame(maxWidth: .infinity, alignment: .center)
+                            }
+                            .padding(.top, 30)
+                        }
                     }
+                    .padding(.bottom, 80) // Space for bottom tab bar
                 }
 
                 BottomTabBar() // Your existing tab bar
-            }
-            .sheet(isPresented: $showAddGrocery) {
-                AddGroceryView(groceryManager: groceryManager) // Pass GroceryManager
-            }
-            .alert(isPresented: $showDeleteAlert) {
-                Alert(
-                    title: Text("Delete Item"),
-                    message: Text("Are you sure you want to delete \(itemToDelete?.name ?? "")?"),
-                    primaryButton: .destructive(Text("Delete")) {
-                        if let itemToDelete = itemToDelete {
-                            deleteGroceryItem(itemToDelete) // Call delete function
-                        }
-                    },
-                    secondaryButton: .cancel()
-                )
             }
             .alert(isPresented: $showActionAlert) {
                 Alert(
@@ -114,34 +176,51 @@ struct GroceryView: View {
                     message: Text("What would you like to do with \(itemToAddToPantry?.name ?? "")?"),
                     primaryButton: .default(Text("Add to Pantry")) {
                         if let item = itemToAddToPantry {
-                            addToPantry(item) // Call the function to add to pantry
+                            addToPantry(item)
                         }
                     },
                     secondaryButton: .destructive(Text("Delete")) {
                         if let itemToDelete = itemToAddToPantry {
-                            deleteGroceryItem(itemToDelete) // Call delete function
+                            deleteGroceryItem(itemToDelete)
                         }
                     }
                 )
             }
         }
-    }
-
-    private func toggleCompletion(for ingredient: GroceryItem) {
-        if let index = groceryManager.groceryItems.firstIndex(where: { $0.id == ingredient.id }) {
-            groceryManager.groceryItems[index].completed.toggle() // Toggle the completed state
+        .onAppear {
+            // Fetch grocery items when view appears
+            groceryManager.fetchGroceryItems()
         }
     }
 
+    // Add new item function
+    private func addNewItem() {
+        guard !newItemName.isEmpty else { return }
+        
+        // Create new grocery item
+        let newItem = GroceryItem(
+            id: UUID().uuidString,
+            name: newItemName,
+            category: newItemCategory,
+            completed: false
+        )
+        
+        // Add to grocery manager
+        groceryManager.addGroceryItem(newItem)
+        
+        // Reset state
+        newItemName = ""
+        withAnimation {
+            isAddingNewItem = false
+        }
+    }
+
+    // Delete grocery item
     private func deleteGroceryItem(_ item: GroceryItem) {
-        // Remove from local state
-        if let index = groceryManager.groceryItems.firstIndex(where: { $0.id == item.id }) {
-            groceryManager.groceryItems.remove(at: index)
-        }
-        // Delete from Firestore
-        groceryManager.deleteGroceryItem(item) // Call the delete function in GroceryManager
+        groceryManager.deleteGroceryItem(item)
     }
 
+    // Add to pantry function (keep from original)
     private func addToPantry(_ item: GroceryItem) {
         // Extract just the ingredient name from the full text
         // The format is: "[name] - [amount] [unit]"
@@ -166,7 +245,7 @@ struct GroceryView: View {
             deleteGroceryItem(item)
         }
     }
-    }
+}
 
 // Preview
 struct GroceryView_Previews: PreviewProvider {

@@ -98,6 +98,7 @@
 		ACA759122D0A56DA00690CE7 /* ComplexSearchResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACA759112D0A56DA00690CE7 /* ComplexSearchResponse.swift */; };
 		ACA759142D0A5E8C00690CE7 /* QuickRecipe.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACA759132D0A5E8C00690CE7 /* QuickRecipe.swift */; };
 		ACA759162D0A79D400690CE7 /* MealPlannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACA759152D0A79D400690CE7 /* MealPlannerView.swift */; };
+		ACAD80202DA04AC9009E16BE /* EditableGroceryItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACAD801F2DA04AC9009E16BE /* EditableGroceryItem.swift */; };
 		ACB3418B2CD05A800029FC2E /* InputView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACB3418A2CD05A800029FC2E /* InputView.swift */; };
 		ACB3418D2CD09DA90029FC2E /* User.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACB3418C2CD09DA90029FC2E /* User.swift */; };
 		ACB3418F2CD0A4020029FC2E /* AuthViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACB3418E2CD0A4020029FC2E /* AuthViewModel.swift */; };
@@ -172,6 +173,7 @@
 		ACA759112D0A56DA00690CE7 /* ComplexSearchResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComplexSearchResponse.swift; sourceTree = "<group>"; };
 		ACA759132D0A5E8C00690CE7 /* QuickRecipe.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickRecipe.swift; sourceTree = "<group>"; };
 		ACA759152D0A79D400690CE7 /* MealPlannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MealPlannerView.swift; sourceTree = "<group>"; };
+		ACAD801F2DA04AC9009E16BE /* EditableGroceryItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditableGroceryItem.swift; sourceTree = "<group>"; };
 		ACB3418A2CD05A800029FC2E /* InputView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputView.swift; sourceTree = "<group>"; };
 		ACB3418C2CD09DA90029FC2E /* User.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = User.swift; sourceTree = "<group>"; };
 		ACB3418E2CD0A4020029FC2E /* AuthViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthViewModel.swift; sourceTree = "<group>"; };
@@ -345,6 +347,7 @@
 				ACB3418A2CD05A800029FC2E /* InputView.swift */,
 				ACA7590F2D0A4B3100690CE7 /* RecipeCard.swift */,
 				AC22842A2D727FCA008EFC84 /* ImagePicker.swift */,
+				ACAD801F2DA04AC9009E16BE /* EditableGroceryItem.swift */,
 			);
 			path = Components;
 			sourceTree = "<group>";
@@ -555,6 +558,7 @@
 				AC594CBD2D7099C800B5CE63 /* DietChipView.swift in Sources */,
 				AC8AB1572D040A64001A0FF4 /* GroceryItem.swift in Sources */,
 				AC2284292D723CEA008EFC84 /* DayPlanView.swift in Sources */,
+				ACAD80202DA04AC9009E16BE /* EditableGroceryItem.swift in Sources */,
 				AC76CA1F2D017CCC001540AF /* Ingredient.swift in Sources */,
 				AC594CBB2D70943700B5CE63 /* DietFilterView.swift in Sources */,
 				AC594CD92D7163F600B5CE63 /* AddToCollectionView.swift in Sources */,
