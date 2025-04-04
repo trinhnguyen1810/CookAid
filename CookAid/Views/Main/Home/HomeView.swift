@@ -392,18 +392,23 @@ struct QuickRecipesView: View {
     var quickrecipes: [QuickRecipe]
     
     var body: some View {
-        VStack(alignment: .leading) {
+        VStack(alignment: .leading, spacing: 10) {
             Text("Quick Meals")
                 .font(.custom("Cochin", size: 20))
                 .fontWeight(.bold)
                 .foregroundColor(.black)
                 .padding(.top, 20)
-                .padding(.leading, 20)
+                .padding(.horizontal, 20)
             
             if quickrecipes.isEmpty {
-                Text("No quick meals available.")
-                    .foregroundColor(.gray)
-                    .padding(.leading, 20)
+                HStack {
+                    Text("No quick meals available")
+                        .font(.custom("Cochin", size: 18))
+                        .foregroundColor(.gray)
+                    Spacer()
+                }
+                .padding(.horizontal, 20)
+                .padding(.top, 8)
             } else {
                 LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 20) {
                     ForEach(quickrecipes) { recipe in

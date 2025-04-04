@@ -69,7 +69,7 @@ class CollectionsManager: ObservableObject {
         }
     }
     
-    // Add recipe to a specific collection (from QuickRecipe)
+    // Add recipe to a specific collection
     func addRecipeToCollection(quickRecipe: QuickRecipe, collectionId: UUID) {
         if let index = collections.firstIndex(where: { $0.id == collectionId }) {
             // Create a temporary partial recipe with basic info
@@ -107,10 +107,8 @@ class CollectionsManager: ObservableObject {
         }
     }
     
-    // Add recipe to a specific collection (from ImportedRecipeDetail)
+    // Add recipe to a specific collection for import
     func addRecipeToCollection(importedRecipe: ImportedRecipeDetail, collectionId: UUID) {
-        print("Adding imported recipe '\(importedRecipe.title)' to collection ID: \(collectionId)")
-        
         // Create the recipe from imported recipe
         let collectionRecipe = RecipeCollections.Recipe(
             title: importedRecipe.title,
@@ -134,27 +132,21 @@ class CollectionsManager: ObservableObject {
         )
         
         if let index = collections.firstIndex(where: { $0.id == collectionId }) {
-            print("Found collection at index \(index)")
-            // Check if recipe already exists in the collection
-            if !collections[index].recipes.contains(where: {
-                if let originalId = $0.originalRecipeId, let importedId = importedRecipe.id {
-                    return originalId == importedId
-                }
-                return false
-            }) {
-                collections[index].recipes.append(collectionRecipe)
-                saveCollections()
-                // Explicitly notify observers of the change
-                objectWillChange.send()
-                print("Recipe added successfully to collection")
-            } else {
-                print("Recipe already exists in collection")
-            }
+            // Add the recipe to collection
+            collections[index].recipes.append(collectionRecipe)
+            
+            // Explicitly trigger UI update
+            objectWillChange.send()
+            
+            // Save changes to persistence
+            saveCollections()
+            
+            print("Recipe added to collection ID: \(collectionId)")
         } else {
             print("Collection not found with ID: \(collectionId)")
         }
     }
-
+    
     func removeRecipeFromCollection(recipeId: UUID, collectionId: UUID) {
         if let collectionIndex = collections.firstIndex(where: { $0.id == collectionId }) {
             // Find and remove the recipe
