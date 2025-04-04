@@ -131,7 +131,7 @@ struct PantryView: View {
                                         
                                         if ingredientsInCategory.isEmpty {
                                             // Show an empty state for categories with no ingredients
-                                            Text("Drag ingredients here")
+                                            Text("No ingredients here")
                                                 .font(.custom("Cochin", size: 16))
                                                 .italic()
                                                 .foregroundColor(.gray)

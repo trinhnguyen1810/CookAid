@@ -54,6 +54,7 @@
 		AC7597B62CB914B00047D091 /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC7597B52CB914B00047D091 /* LoginView.swift */; };
 		AC7597B82CB914C20047D091 /* SignUpView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC7597B72CB914C20047D091 /* SignUpView.swift */; };
 		AC7597C52CB91D710047D091 /* logo.png in Resources */ = {isa = PBXBuildFile; fileRef = AC7597C42CB91D710047D091 /* logo.png */; };
+		AC7695502D9FA1220001DB8A /* ErrorHandling.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC76954F2D9FA1220001DB8A /* ErrorHandling.swift */; };
 		AC76CA1F2D017CCC001540AF /* Ingredient.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC76CA1E2D017CCC001540AF /* Ingredient.swift */; };
 		AC76CA212D017E6B001540AF /* AddIngredientView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC76CA202D017E6B001540AF /* AddIngredientView.swift */; };
 		AC76CA272D02AD2A001540AF /* EditIngredientView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC76CA262D02AD2A001540AF /* EditIngredientView.swift */; };
@@ -153,6 +154,7 @@
 		AC7597B52CB914B00047D091 /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
 		AC7597B72CB914C20047D091 /* SignUpView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignUpView.swift; sourceTree = "<group>"; };
 		AC7597C42CB91D710047D091 /* logo.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = logo.png; sourceTree = "<group>"; };
+		AC76954F2D9FA1220001DB8A /* ErrorHandling.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ErrorHandling.swift; sourceTree = "<group>"; };
 		AC76CA1E2D017CCC001540AF /* Ingredient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Ingredient.swift; sourceTree = "<group>"; };
 		AC76CA202D017E6B001540AF /* AddIngredientView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddIngredientView.swift; sourceTree = "<group>"; };
 		AC76CA262D02AD2A001540AF /* EditIngredientView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditIngredientView.swift; sourceTree = "<group>"; };
@@ -225,6 +227,7 @@
 				AC594CFA2D71985C00B5CE63 /* RecipeImportManager.swift */,
 				AC22841E2D723C1B008EFC84 /* MealPlanManager.swift */,
 				ACEA84932D82980D008DE404 /* APIConfig.swift */,
+				AC76954F2D9FA1220001DB8A /* ErrorHandling.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -593,6 +596,7 @@
 				AC4FD6A32CBAD5AD0093A7DC /* TabBarButton.swift in Sources */,
 				AC594CF22D7196A400B5CE63 /* IngredientsManager.swift in Sources */,
 				AC2284272D723CC6008EFC84 /* MealItemView.swift in Sources */,
+				AC7695502D9FA1220001DB8A /* ErrorHandling.swift in Sources */,
 				AC2E5A9F2D71EBB1002C8DDC /* EditRecipeView.swift in Sources */,
 				AC594CD72D7162B900B5CE63 /* ImportRecipeView.swift in Sources */,
 				AC4FD69F2CBAD41C0093A7DC /* MyRecipeView.swift in Sources */,

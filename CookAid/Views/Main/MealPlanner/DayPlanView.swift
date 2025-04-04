@@ -41,7 +41,7 @@ struct DayPlanView: View {
     }
 }
 
-// Separate view for each meal section
+// view to drag and drop
 struct MealSectionView: View {
     let day: Date
     let mealType: MealType
@@ -56,15 +56,30 @@ struct MealSectionView: View {
                 .font(.custom("Cochin", size: 18))
                 .foregroundColor(.gray)
             
+            // Wrapper view to handle drag and drop for both empty and populated meal sections
+            mealContainerView
+        }
+    }
+    
+    // Compute the meal container view
+    private var mealContainerView: some View {
+        Group {
             if mealPlanManager.getMeals(for: day, mealType: mealType).isEmpty {
                 emptyMealView
             } else {
                 populatedMealView
             }
         }
+        .onDrop(of: [.text], isTargeted: $isTargeted) { providers in
+            handleDrop()
+        }
+        .background(isTargeted ? Color.blue.opacity(0.1) : Color.clear)
+        .overlay(
+            RoundedRectangle(cornerRadius: 8)
+                .stroke(isTargeted ? Color.blue : Color.clear, lineWidth: 1)
+        )
     }
     
-    // View for empty meal slot
     private var emptyMealView: some View {
         Button {
             print("Add \(mealType.rawValue) button tapped for \(day)")
@@ -85,9 +100,17 @@ struct MealSectionView: View {
         }
         .buttonStyle(PlainButtonStyle())
         .contentShape(Rectangle())
+        .onDrop(of: [.text], isTargeted: $isTargeted) { providers in
+            handleDrop()
+        }
+        .background(isTargeted ? Color.blue.opacity(0.1) : Color.clear)
+        .overlay(
+            RoundedRectangle(cornerRadius: 8)
+                .stroke(isTargeted ? Color.blue : Color.clear, lineWidth: 1)
+        )
     }
     
-    // View for populated meal slot
+    // Populated meal view (existing implementation)
     private var populatedMealView: some View {
         VStack(spacing: 8) {
             ForEach(mealPlanManager.getMeals(for: day, mealType: mealType)) { meal in
@@ -100,7 +123,6 @@ struct MealSectionView: View {
             
             // Add more button
             Button {
-                print("Add More button tapped for \(mealType.rawValue) on \(day)")
                 onAddMeal(day, mealType)
             } label: {
                 HStack {
@@ -115,16 +137,12 @@ struct MealSectionView: View {
             .contentShape(Rectangle())
         }
         .padding(8)
-        .background(isTargeted ? Color.blue.opacity(0.1) : Color.white)
+        .background(Color.white)
         .cornerRadius(8)
         .overlay(
             RoundedRectangle(cornerRadius: 8)
                 .stroke(Color.gray.opacity(0.3), lineWidth: 1)
         )
-        // Handle drop
-        .onDrop(of: [.text], isTargeted: $isTargeted) { providers, _ in
-            handleDrop()
-        }
     }
     
     // Handle drop operation

@@ -8,9 +8,9 @@ struct HomeView: View {
     @State private var searchText = ""
     @State private var isSearching = false
     @State private var showingAddIngredientView = false
-    @State private var selectedDiets: [String] = [] // Array for selected diets
-    @State private var selectedIntolerances: [String] = [] // Array for selected intolerances
-    @State private var showDietFilter = false // State for showing filter options
+    @State private var selectedDiets: [String] = []
+    @State private var selectedIntolerances: [String] = []
+    @State private var showDietFilter = false
     
     @State private var row1Items: [String] = []
     @State private var row2Items: [String] = []
@@ -34,36 +34,29 @@ struct HomeView: View {
                         )
                         .padding(.top, 8)
                         .padding(.bottom, 4)
-                        .frame(maxWidth: .infinity, alignment: .leading) // Align to the left
+                        .frame(maxWidth: .infinity, alignment: .leading)
 
-                        // Replace the Filter Chips View section:
-                        // Filter Chips View - Show only when filters are active
+                        // Filter Chips View
                         if !selectedDiets.isEmpty || !selectedIntolerances.isEmpty {
                             FilterChipsView(
                                 diets: selectedDiets,
                                 intolerances: selectedIntolerances,
                                 onRemoveDiet: { diet in
                                     selectedDiets.removeAll { $0 == diet }
-                                    Task {
-                                        await loadData()
-                                    }
+                                    Task { await loadData() }
                                 },
                                 onRemoveIntolerance: { intolerance in
                                     selectedIntolerances.removeAll { $0 == intolerance }
-                                    Task {
-                                        await loadData()
-                                    }
+                                    Task { await loadData() }
                                 },
                                 onClearAll: {
                                     selectedDiets.removeAll()
                                     selectedIntolerances.removeAll()
-                                    Task {
-                                        await loadData()
-                                    }
+                                    Task { await loadData() }
                                 }
                             )
                             .padding(.bottom, 8)
-                            .frame(maxWidth: .infinity, alignment: .leading) // Align to the left
+                            .frame(maxWidth: .infinity, alignment: .leading)
                         }
                         
                         // Pantry View
@@ -73,11 +66,23 @@ struct HomeView: View {
                             showingAddIngredientView: $showingAddIngredientView
                         )
                         
-                        // Conditional Content
-                        if isSearching {
-                            searchResultsView
-                        } else {
-                            defaultContentView
+                        // Content based on loading state
+                        switch recipeAPIManager.loadingState {
+                        case .idle, .success:
+                            if isSearching {
+                                searchResultsView
+                            } else {
+                                defaultContentView
+                            }
+                        case .loading:
+                            LoadingView()
+                                .frame(maxWidth: .infinity, alignment: .center)
+                                .padding()
+                        case .error(let message):
+                            ErrorMessageView(message: message) {
+                                // Retry action
+                                Task { await loadData() }
+                            }
                         }
                     }
                     .background(Color.white)
@@ -86,19 +91,13 @@ struct HomeView: View {
                         await loadData()
                     }
                     .onChange(of: ingredientsManager.ingredients.count) { _ in
-                        Task {
-                            await loadData()
-                        }
+                        Task { await loadData() }
                     }
                     .onChange(of: selectedDiets) { _ in
-                        Task {
-                            await loadData()
-                        }
+                        Task { await loadData() }
                     }
                     .onChange(of: selectedIntolerances) { _ in
-                        Task {
-                            await loadData()
-                        }
+                        Task { await loadData() }
                     }
                     .padding(.bottom, 60)
                 }
@@ -167,23 +166,30 @@ struct HomeView: View {
                 .padding(.top, 20)
                 .padding(.leading, 20)
             
-            if recipeAPIManager.isLoading {
+            switch recipeAPIManager.loadingState {
+            case .loading:
                 ProgressView()
                     .frame(maxWidth: .infinity)
                     .padding()
-            } else if recipeAPIManager.searchResults.isEmpty {
-                Text("No recipes found")
-                    .foregroundColor(.gray)
+            case .error(let message):
+                Text(message)
+                    .foregroundColor(.red)
                     .padding(.leading, 20)
-            } else {
-                LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 20) {
-                    ForEach(recipeAPIManager.searchResults) { recipe in
-                        NavigationLink(destination: RecipeDetailView(recipeId: recipe.id)) {
-                            RecipeCard(recipe: recipe.title, image: recipe.image, recipeId: recipe.id)
+            default:
+                if recipeAPIManager.searchResults.isEmpty {
+                    Text("No recipes found")
+                        .foregroundColor(.gray)
+                        .padding(.leading, 20)
+                } else {
+                    LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 20) {
+                        ForEach(recipeAPIManager.searchResults) { recipe in
+                            NavigationLink(destination: RecipeDetailView(recipeId: recipe.id)) {
+                                RecipeCard(recipe: recipe.title, image: recipe.image, recipeId: recipe.id)
+                            }
                         }
                     }
+                    .padding(.horizontal, 20)
                 }
-                .padding(.horizontal, 20)
             }
         }
     }
@@ -191,13 +197,38 @@ struct HomeView: View {
     // Default Home Content View
     private var defaultContentView: some View {
         VStack {
-            if let errorMessage = recipeAPIManager.errorMessage {
-                Text(errorMessage)
-                    .foregroundColor(.red)
-                    .padding()
+            if ingredientsManager.ingredients.isEmpty {
+                // Show a message when no ingredients are in the pantry
+                VStack {
+                    Text("Add Ingredients to Get Recipe Recommendations")
+                        .font(.custom("Cochin", size: 18))
+                        .foregroundColor(.gray)
+                        .multilineTextAlignment(.center)
+                    
+                    Button(action: { showingAddIngredientView = true }) {
+                        Text("Add Ingredients")
+                            .padding()
+                            .background(Color.black)
+                            .foregroundColor(.white)
+                            .cornerRadius(10)
+                    }
+                }
             } else {
-                RecommendedRecipesView(recipes: recipeAPIManager.recipes)
-                QuickRecipesView(quickrecipes: recipeAPIManager.quickrecipes)
+                switch recipeAPIManager.loadingState {
+                case .loading:
+                    LoadingView()
+                case .error(let message):
+                    VStack {
+                        RecommendedRecipesView(recipes: [])
+                        QuickRecipesView(quickrecipes: [])
+                        ErrorMessageView(message: message) {
+                            Task { await loadData() }
+                        }
+                    }
+                case .idle, .success:
+                    RecommendedRecipesView(recipes: recipeAPIManager.recipes)
+                    QuickRecipesView(quickrecipes: recipeAPIManager.quickrecipes)
+                }
             }
         }
     }
@@ -206,20 +237,23 @@ struct HomeView: View {
         await ingredientsManager.fetchIngredients()
         splitPantryItems()
         
-        // Only load these if not searching
-        if !isSearching {
-            await recipeAPIManager.fetchRecipes(
+        // Only load these if not searching and there are ingredients
+        if !isSearching && !ingredientsManager.ingredients.isEmpty {
+            recipeAPIManager.fetchRecipes(
                 ingredients: ingredientsManager.ingredients.map { $0.name },
                 diets: selectedDiets.map { formatForAPI($0) },
                 intolerances: selectedIntolerances.map { formatForAPI($0) }
             )
-            await recipeAPIManager.fetchQuickMeals(
+            
+            recipeAPIManager.fetchQuickMeals(
                 ingredients: ingredientsManager.ingredients.map { $0.name },
                 diets: selectedDiets.map { formatForAPI($0) },
                 intolerances: selectedIntolerances.map { formatForAPI($0) }
             )
         }
     }
+    
+
     
     private func formatForAPI(_ string: String) -> String {
         // Convert "Gluten Free" to "gluten-free" for API
@@ -232,6 +266,16 @@ struct HomeView: View {
         row2Items = ingredientsManager.ingredients.suffix(from: midpoint).map { $0.name }
     }
 }
+
+struct HomeView_Previews: PreviewProvider {
+    static var previews: some View {
+        HomeView()
+            .environmentObject(AuthViewModel())
+            .environmentObject(IngredientsManager(recipeAPIManager: RecipeAPIManager()))
+    }
+}
+
+// Existing subviews from the previous implementation
 struct HeaderView: View {
     @EnvironmentObject var viewModel: AuthViewModel
 
@@ -273,22 +317,18 @@ struct MyPantryView: View {
                     .foregroundColor(.black)
                 Spacer()
 
-                    // Plus Button to add ingredient
-                    Button(action: {
-                        showingAddIngredientView = true // Show the AddIngredientView
-                    }) {
-                        HStack {
-                            Image(systemName: "plus")
-                                .foregroundColor(.white)
-                        }
-                        .padding(.vertical, 12)
-                        .padding(.horizontal, 16)
-                        .background(Color.black)
-                        .cornerRadius(8)
+                Button(action: {
+                    showingAddIngredientView = true
+                }) {
+                    HStack {
+                        Image(systemName: "plus")
+                            .foregroundColor(.white)
                     }
+                    .padding(.vertical, 12)
+                    .padding(.horizontal, 16)
+                    .background(Color.black)
+                    .cornerRadius(8)
                 }
-                .padding(.trailing, 5)
-                .padding(.top, 10)
             }
             .padding(.horizontal)
             .padding(.leading, 5)
@@ -298,7 +338,7 @@ struct MyPantryView: View {
             PantryItemsRow(items: row2Items)
         }
     }
-
+}
 
 struct PantryItemsRow: View {
     var items: [String]
@@ -323,6 +363,7 @@ struct PantryItemsRow: View {
         }
     }
 }
+
 struct RecommendedRecipesView: View {
     var recipes: [Recipe]
 
@@ -346,6 +387,7 @@ struct RecommendedRecipesView: View {
         }
     }
 }
+
 struct QuickRecipesView: View {
     var quickrecipes: [QuickRecipe]
     
@@ -373,12 +415,5 @@ struct QuickRecipesView: View {
                 .padding(.horizontal, 20)
             }
         }
-    }
-}
-
-struct HomeView_Previews: PreviewProvider {
-    static var previews: some View {
-        HomeView().environmentObject(AuthViewModel())
-            .environmentObject(IngredientsManager(recipeAPIManager: RecipeAPIManager())) // Provide a mock AuthViewModel for preview
     }
 }

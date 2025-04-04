@@ -1,12 +1,13 @@
 import Foundation
 import Combine
 
-class RecipeAPIManager: ObservableObject {
+class RecipeAPIManager: ObservableObject, NetworkErrorHandler {
     @Published var recipes: [Recipe] = []
     @Published var quickrecipes: [QuickRecipe] = []
     @Published var searchResults: [QuickRecipe] = []
     @Published var errorMessage: String? = nil
     @Published var isLoading: Bool = false
+    @Published var loadingState: LoadingState = .idle
     
     // Get API headers from APIConfig
     private var headers: [String: String] {
@@ -18,19 +19,19 @@ class RecipeAPIManager: ObservableObject {
         let ingredientsString = ingredients.joined(separator: "%2C")
         
         guard var urlComponents = URLComponents(string: "https://spoonacular-recipe-food-nutrition-v1.p.rapidapi.com/recipes/findByIngredients") else {
-            self.errorMessage = "Invalid URL"
+            self.loadingState = .error("Invalid URL")
             return
         }
         
         urlComponents.queryItems = [
             URLQueryItem(name: "ingredients", value: ingredientsString),
-            URLQueryItem(name: "number", value: "2"),
+            URLQueryItem(name: "number", value: "1"),
             URLQueryItem(name: "ignorePantry", value: "true"),
             URLQueryItem(name: "ranking", value: "1")
         ]
         
         guard let url = urlComponents.url else {
-            self.errorMessage = "Invalid URL"
+            self.loadingState = .error("Invalid URL")
             return
         }
         
@@ -38,31 +39,52 @@ class RecipeAPIManager: ObservableObject {
         request.httpMethod = "GET"
         request.allHTTPHeaderFields = headers
         
-        isLoading = true
-        errorMessage = nil
+        // Update loading state
+        self.loadingState = .loading
+        self.errorMessage = nil
         
         URLSession.shared.dataTask(with: request) { [weak self] data, response, error in
             guard let self = self else { return }
             
             DispatchQueue.main.async {
-                self.isLoading = false
-                
+                // Handle network errors
                 if let error = error {
                     self.errorMessage = "Error fetching recipes: \(error.localizedDescription)"
+                    self.loadingState = .error(self.handleNetworkError(error))
                     return
+                }
+                
+                // Check HTTP response
+                if let httpResponse = response as? HTTPURLResponse {
+                    guard (200...299).contains(httpResponse.statusCode) else {
+                        self.errorMessage = "HTTP \(httpResponse.statusCode) error"
+                        self.loadingState = .error(self.handleHTTPError(httpResponse.statusCode))
+                        return
+                    }
                 }
                 
                 guard let data = data else {
                     self.errorMessage = "No data received"
+                    self.loadingState = .error("No data received")
                     return
                 }
                 
                 do {
                     let recipes = try JSONDecoder().decode([Recipe].self, from: data)
                     self.recipes = recipes
+                    
+                    // Update loading state based on results
+                    if recipes.isEmpty {
+                        self.loadingState = .error("No recipes found")
+                    } else {
+                        self.loadingState = .success
+                    }
+                    
                     self.errorMessage = nil
                 } catch {
                     self.errorMessage = "Error decoding recipes: \(error.localizedDescription)"
+                    self.loadingState = .error("Failed to decode recipes")
+                    
                     // Print raw JSON for debugging
                     if let jsonString = String(data: data, encoding: .utf8) {
                         print("Raw JSON Response: \(jsonString)")
@@ -73,8 +95,15 @@ class RecipeAPIManager: ObservableObject {
     }
     
     func fetchRecipeDetail(id: Int) async -> RecipeDetail? {
+        // Update loading state
+        await MainActor.run {
+            self.loadingState = .loading
+            self.errorMessage = nil
+        }
+        
         guard let url = URL(string: "https://spoonacular-recipe-food-nutrition-v1.p.rapidapi.com/recipes/\(id)/information") else {
             await MainActor.run {
+                self.loadingState = .error("Invalid URL")
                 self.errorMessage = "Invalid URL"
             }
             return nil
@@ -84,23 +113,31 @@ class RecipeAPIManager: ObservableObject {
         request.httpMethod = "GET"
         request.allHTTPHeaderFields = headers
         
-        await MainActor.run {
-            self.isLoading = true
-            self.errorMessage = nil
-        }
-        
         do {
-            let (data, _) = try await URLSession.shared.data(for: request)
+            let (data, response) = try await URLSession.shared.data(for: request)
             
-            await MainActor.run {
-                self.isLoading = false
+            // Check HTTP response
+            if let httpResponse = response as? HTTPURLResponse {
+                guard (200...299).contains(httpResponse.statusCode) else {
+                    await MainActor.run {
+                        self.loadingState = .error(handleHTTPError(httpResponse.statusCode))
+                        self.errorMessage = "HTTP \(httpResponse.statusCode) error"
+                    }
+                    return nil
+                }
             }
             
             let decoder = JSONDecoder()
-            return try decoder.decode(RecipeDetail.self, from: data)
+            let recipeDetail = try decoder.decode(RecipeDetail.self, from: data)
+            
+            await MainActor.run {
+                self.loadingState = .success
+            }
+            
+            return recipeDetail
         } catch {
             await MainActor.run {
-                self.isLoading = false
+                self.loadingState = .error(handleNetworkError(error))
                 self.errorMessage = "Error fetching recipe detail: \(error.localizedDescription)"
             }
             print("Error decoding recipe detail: \(error)")
@@ -113,7 +150,7 @@ class RecipeAPIManager: ObservableObject {
         let ingredientsString = ingredients.joined(separator: "%2C")
         
         guard var urlComponents = URLComponents(string: "https://spoonacular-recipe-food-nutrition-v1.p.rapidapi.com/recipes/searchComplex") else {
-            self.errorMessage = "Invalid URL"
+            self.loadingState = .error("Invalid URL")
             return
         }
         
@@ -134,7 +171,7 @@ class RecipeAPIManager: ObservableObject {
         }
         
         guard let url = urlComponents.url else {
-            self.errorMessage = "Invalid URL"
+            self.loadingState = .error("Invalid URL")
             return
         }
         
@@ -142,31 +179,52 @@ class RecipeAPIManager: ObservableObject {
         request.httpMethod = "GET"
         request.allHTTPHeaderFields = headers
         
-        isLoading = true
-        errorMessage = nil
+        // Update loading state
+        self.loadingState = .loading
+        self.errorMessage = nil
         
         URLSession.shared.dataTask(with: request) { [weak self] data, response, error in
             guard let self = self else { return }
             
             DispatchQueue.main.async {
-                self.isLoading = false
-                
+                // Handle network errors
                 if let error = error {
                     self.errorMessage = "Error fetching quick meals: \(error.localizedDescription)"
+                    self.loadingState = .error(self.handleNetworkError(error))
                     return
+                }
+                
+                // Check HTTP response
+                if let httpResponse = response as? HTTPURLResponse {
+                    guard (200...299).contains(httpResponse.statusCode) else {
+                        self.errorMessage = "HTTP \(httpResponse.statusCode) error"
+                        self.loadingState = .error(self.handleHTTPError(httpResponse.statusCode))
+                        return
+                    }
                 }
                 
                 guard let data = data else {
                     self.errorMessage = "No data received"
+                    self.loadingState = .error("No data received")
                     return
                 }
                 
                 do {
                     let response = try JSONDecoder().decode(ComplexSearchResponse.self, from: data)
                     self.quickrecipes = response.results
+                    
+                    // Update loading state based on results
+                    if response.results.isEmpty {
+                        self.loadingState = .error("No quick meals found")
+                    } else {
+                        self.loadingState = .success
+                    }
+                    
                     self.errorMessage = nil
                 } catch {
                     self.errorMessage = "Error decoding quick meals: \(error.localizedDescription)"
+                    self.loadingState = .error("Failed to decode quick meals")
+                    
                     // Print raw JSON for debugging
                     if let jsonString = String(data: data, encoding: .utf8) {
                         print("Raw JSON Response: \(jsonString)")
@@ -178,14 +236,13 @@ class RecipeAPIManager: ObservableObject {
     
     @MainActor
     func searchRecipes(query: String, diets: [String] = [], intolerances: [String] = []) {
-        // Reset search results
+        // Reset search results and update loading state
         self.searchResults = []
-        self.isLoading = true
+        self.loadingState = .loading
         self.errorMessage = nil
         
         guard var urlComponents = URLComponents(string: "https://spoonacular-recipe-food-nutrition-v1.p.rapidapi.com/recipes/searchComplex") else {
-            self.errorMessage = "Invalid URL"
-            self.isLoading = false
+            self.loadingState = .error("Invalid URL")
             return
         }
         
@@ -207,8 +264,7 @@ class RecipeAPIManager: ObservableObject {
         urlComponents.queryItems = queryItems
         
         guard let url = urlComponents.url else {
-            self.errorMessage = "Invalid URL"
-            self.isLoading = false
+            self.loadingState = .error("Invalid URL")
             return
         }
         
@@ -222,25 +278,44 @@ class RecipeAPIManager: ObservableObject {
             guard let self = self else { return }
             
             DispatchQueue.main.async {
-                self.isLoading = false
-                
+                // Handle network errors
                 if let error = error {
                     self.errorMessage = "Error searching recipes: \(error.localizedDescription)"
+                    self.loadingState = .error(self.handleNetworkError(error))
                     return
+                }
+                
+                // Check HTTP response
+                if let httpResponse = response as? HTTPURLResponse {
+                    guard (200...299).contains(httpResponse.statusCode) else {
+                        self.errorMessage = "HTTP \(httpResponse.statusCode) error"
+                        self.loadingState = .error(self.handleHTTPError(httpResponse.statusCode))
+                        return
+                    }
                 }
                 
                 guard let data = data else {
                     self.errorMessage = "No data received"
+                    self.loadingState = .error("No data received")
                     return
                 }
                 
                 do {
                     let response = try JSONDecoder().decode(ComplexSearchResponse.self, from: data)
                     self.searchResults = response.results
+                    
+                    // Update loading state based on results
+                    if response.results.isEmpty {
+                        self.loadingState = .error("No recipes found")
+                    } else {
+                        self.loadingState = .success
+                    }
+                    
                     self.errorMessage = nil
                     print("Search results count: \(response.results.count)")
                 } catch {
                     self.errorMessage = "Error decoding search results: \(error.localizedDescription)"
+                    self.loadingState = .error("Failed to decode search results")
                     print("Decoding error: \(error)")
                     
                     // Print raw JSON for debugging

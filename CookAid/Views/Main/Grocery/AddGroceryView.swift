@@ -1,9 +1,10 @@
 import SwiftUI
 
 struct AddGroceryView: View {
-    @ObservedObject var groceryManager: GroceryManager // Use GroceryManager
+    @ObservedObject var groceryManager: GroceryManager
     @State private var name: String = ""
     @State private var category: String = "Others" // Default category
+    @State private var errorMessage: String? = nil
     @Environment(\.presentationMode) var presentationMode
     
     let categories = [
@@ -31,6 +32,13 @@ struct AddGroceryView: View {
                     }
                     .pickerStyle(MenuPickerStyle())
                     .font(.custom("Cochin", size: 18))
+                    
+                    // Error Message
+                    if let errorMessage = errorMessage {
+                        Text(errorMessage)
+                            .font(.custom("Cochin", size: 16))
+                            .foregroundColor(.red)
+                    }
                 }
 
                 Button("Add Grocery") {
@@ -41,6 +49,7 @@ struct AddGroceryView: View {
                 .background(Color.black)
                 .foregroundColor(.white)
                 .cornerRadius(8)
+                .disabled(name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
             }
             .navigationTitle("Add Grocery")
             .navigationBarTitleDisplayMode(.inline)
@@ -48,8 +57,44 @@ struct AddGroceryView: View {
     }
 
     private func addGrocery() {
-        let newGrocery = GroceryItem(id: UUID().uuidString, name: name, category: category)
-        groceryManager.addGroceryItem(newGrocery) // Use GroceryManager to add
-        presentationMode.wrappedValue.dismiss() // Dismiss the view after adding
+        // Trim whitespace and check for empty string
+        let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        
+        guard !trimmedName.isEmpty else {
+            errorMessage = "Grocery name cannot be empty"
+            return
+        }
+        
+        // Check for minimum length
+        guard trimmedName.count >= 2 else {
+            errorMessage = "Grocery name must be at least 2 characters long"
+            return
+        }
+        
+        // Check for maximum length
+        guard trimmedName.count <= 50 else {
+            errorMessage = "Grocery name is too long (max 50 characters)"
+            return
+        }
+        
+        // Check for valid characters (optional, but can prevent special inputs)
+        let validNameRegex = try? NSRegularExpression(pattern: "^[a-zA-Z0-9 '-]+$")
+        guard let regex = validNameRegex,
+              regex.firstMatch(in: trimmedName, range: NSRange(location: 0, length: trimmedName.utf16.count)) != nil else {
+            errorMessage = "Invalid characters in grocery name"
+            return
+        }
+        
+        let newGrocery = GroceryItem(
+            id: UUID().uuidString,
+            name: trimmedName,
+            category: category
+        )
+        
+        groceryManager.addGroceryItem(newGrocery)
+        
+        // Clear error message and dismiss view
+        errorMessage = nil
+        presentationMode.wrappedValue.dismiss()
     }
 }
