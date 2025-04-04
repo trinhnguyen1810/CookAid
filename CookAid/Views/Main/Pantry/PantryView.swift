@@ -1,15 +1,13 @@
 import SwiftUI
-import Firebase
-import FirebaseFirestore
 
 struct PantryView: View {
     @StateObject private var ingredientsManager = IngredientsManager()
     @State private var showAddIngredient = false
     @State private var searchText: String = ""
     @State private var selectedIngredient: Ingredient? // To hold the ingredient to edit
-    @State private var isDragging = false
-    @State private var draggedIngredient: Ingredient?
-    @State private var targetCategory: String?
+    @State private var showClearAllAlert = false
+    @State private var showClearCategoryAlert = false
+    @State private var categoryToClear: String = ""
 
     var body: some View {
         NavigationView {
@@ -26,6 +24,47 @@ struct PantryView: View {
                             Spacer()
                             
                             HStack(spacing: 10) {
+                                // Camera Button
+                                Button(action: {
+                                    // Handle scan recipe action
+                                }) {
+                                    HStack {
+                                        Image(systemName: "camera")
+                                            .foregroundColor(.white)
+                                    }
+                                    .padding(.vertical, 10)
+                                    .padding(.horizontal, 15)
+                                    .background(Color.black)
+                                    .cornerRadius(8)
+                                }
+                                
+                                // Menu for Clear options
+                                Menu {
+                                    Button(action: {
+                                        showClearAllAlert = true
+                                    }) {
+                                        Label("Clear All Ingredients", systemImage: "trash")
+                                    }
+                                    
+                                    Menu("Clear by Category") {
+                                        ForEach(IngredientCategorizer.categories, id: \.self) { category in
+                                            Button(action: {
+                                                categoryToClear = category
+                                                showClearCategoryAlert = true
+                                            }) {
+                                                Text(category)
+                                            }
+                                        }
+                                    }
+                                } label: {
+                                    Image(systemName: "trash")
+                                        .foregroundColor(.white)
+                                        .padding(.vertical, 10)
+                                        .padding(.horizontal, 15)
+                                        .background(Color.red)
+                                        .cornerRadius(8)
+                                }
+                                
                                 // Plus Button
                                 Button(action: {
                                     showAddIngredient.toggle()
@@ -59,88 +98,54 @@ struct PantryView: View {
                         }
                         .padding(.top, 10)
                         
-                        // Define custom order for categories
-                        let customOrder = ["Proteins", "Dairy & Dairy Alternatives", "Grains and Legumes", "Fruits & Vegetables", "Spices, Seasonings and Herbs", "Sauces and Condiments", "Cooking Essentials", "Others"]
+                        // Empty state
+                        if ingredientsManager.ingredients.isEmpty {
+                            VStack(spacing: 20) {
+                                Spacer().frame(height: 40)
+                                Image(systemName: "carrot")
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fit)
+                                    .frame(width: 70, height: 70)
+                                    .foregroundColor(.gray)
+                                Text("Your pantry is empty")
+                                    .font(.custom("Cochin", size: 18))
+                                    .foregroundColor(.gray)
+                                Text("Tap + to add ingredients")
+                                    .font(.custom("Cochin", size: 15))
+                                    .foregroundColor(.gray)
+                                Spacer()
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding(.top, 40)
+                        } else {
+                            // Define custom order for categories
+                            let customOrder = IngredientCategorizer.categories
 
-                        // Displaying ingredients by category
-                        let groupedIngredients = Dictionary(grouping: ingredientsManager.ingredients.filter { ingredient in
-                            searchText.isEmpty || ingredient.name.lowercased().contains(searchText.lowercased())
-                        }) { $0.category }
-                        
-                        ForEach(customOrder, id: \.self) { category in
-                            VStack(alignment: .leading) {
-                                Text(category)
-                                    .font(.custom("Cochin", size: 22))
-                                    .fontWeight(.bold)
-                                    .padding(.top, 20)
-                                    .padding(.horizontal)
-                                    .background(targetCategory == category ? Color.blue.opacity(0.1) : Color.clear)
-                                    .cornerRadius(8)
-                                
-                                // We'll wrap everything in a ZStack to allow dropping on empty categories
-                                ZStack {
-                                    // This Rectangle serves as a drop target for empty categories
-                                    Rectangle()
-                                        .fill(Color.clear)
-                                        .frame(height: groupedIngredients[category]?.isEmpty ?? true ? 100 : 0)
-                                        .dropDestination(for: String.self) { items, location in
-                                            guard let draggedIngredient = draggedIngredient else { return false }
-                                            
-                                            // Check if the dragged ingredient is from a different category
-                                            if draggedIngredient.category != category {
-                                                moveIngredient(draggedIngredient, toCategory: category)
-                                                return true
-                                            }
-                                            return false
-                                        } isTargeted: { isTargeted in
-                                            targetCategory = isTargeted ? category : nil
-                                        }
-                                    
-                                    // LazyVGrid for two cards in a row
-                                    LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 2), spacing: 10) {
-                                        // Get ingredients for the current category or an empty array if none exist
-                                        let ingredientsInCategory = groupedIngredients[category] ?? []
+                            // Displaying ingredients by category
+                            let groupedIngredients = Dictionary(grouping: ingredientsManager.ingredients.filter { ingredient in
+                                searchText.isEmpty || ingredient.name.lowercased().contains(searchText.lowercased())
+                            }) { $0.category }
+                            
+                            ForEach(customOrder, id: \.self) { category in
+                                if let ingredientsInCategory = groupedIngredients[category], !ingredientsInCategory.isEmpty {
+                                    VStack(alignment: .leading) {
+                                        Text(category)
+                                            .font(.custom("Cochin", size: 22))
+                                            .fontWeight(.bold)
+                                            .padding(.top, 20)
+                                            .padding(.horizontal)
                                         
-                                        if ingredientsInCategory.isEmpty {
-                                            // Show an empty state for categories with no ingredients
-                                            Text("No ingredients here")
-                                                .font(.custom("Cochin", size: 16))
-                                                .italic()
-                                                .foregroundColor(.gray)
-                                                .frame(maxWidth: .infinity)
-                                                .padding()
-                                        } else {
+                                        // LazyVGrid for two cards in a row
+                                        LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 2), spacing: 10) {
                                             ForEach(ingredientsInCategory) { ingredient in
-                                                IngredientCard(
-                                                    ingredient: ingredient,
-                                                    ingredients: $ingredientsManager.ingredients,
-                                                    isDragging: $isDragging,
-                                                    draggedIngredient: $draggedIngredient
-                                                )
-                                                .padding(.horizontal)
-                                                .padding(.top, 10)
-                                                .onTapGesture {
-                                                    selectedIngredient = ingredient // Set the selected ingredient for editing on tap
-                                                }
-                                                .onDrag {
-                                                    draggedIngredient = ingredient
-                                                    isDragging = true
-                                                    return NSItemProvider(object: ingredient.id as NSString)
-                                                }
+                                                IngredientCard(ingredient: ingredient)
+                                                    .padding(.horizontal)
+                                                    .padding(.top, 10)
+                                                    .onTapGesture {
+                                                        selectedIngredient = ingredient // Set the selected ingredient for editing on tap
+                                                    }
                                             }
                                         }
-                                    }
-                                    .dropDestination(for: String.self) { items, location in
-                                        guard let draggedIngredient = draggedIngredient else { return false }
-                                        
-                                        // Check if the dragged ingredient is from a different category
-                                        if draggedIngredient.category != category {
-                                            moveIngredient(draggedIngredient, toCategory: category)
-                                            return true
-                                        }
-                                        return false
-                                    } isTargeted: { isTargeted in
-                                        targetCategory = isTargeted ? category : nil
                                     }
                                 }
                             }
@@ -162,96 +167,58 @@ struct PantryView: View {
             .sheet(isPresented: $showAddIngredient) {
                 AddIngredientView(ingredients: $ingredientsManager.ingredients)
             }
-            .onChange(of: isDragging) { dragging in
-                if !dragging {
-                    // Reset when drag ends
-                    targetCategory = nil
-                    draggedIngredient = nil
+            .alert("Clear All Ingredients", isPresented: $showClearAllAlert) {
+                Button("Cancel", role: .cancel) {}
+                Button("Clear All", role: .destructive) {
+                    Task {
+                        await ingredientsManager.clearAllIngredients()
+                    }
                 }
+            } message: {
+                Text("Are you sure you want to remove all ingredients from your pantry? This cannot be undone.")
             }
-        }
-    }
-    
-    private func moveIngredient(_ ingredient: Ingredient, toCategory category: String) {
-        Task {
-            await ingredientsManager.updateIngredientCategory(ingredient, newCategory: category)
-            // Reset drag state
-            isDragging = false
-            draggedIngredient = nil
-        }
-    }
-    
-    struct IngredientCard: View {
-        let ingredient: Ingredient
-        @Binding var ingredients: [Ingredient]
-        @Binding var isDragging: Bool
-        @Binding var draggedIngredient: Ingredient?
-
-        var body: some View {
-            VStack {
-                Text(ingredient.name)
-                    .font(.custom("Cochin", size: 18))
-                    .fontWeight(.bold)
-                    .foregroundColor(.black)
-                
-                let dateString = ingredient.dateBought != nil ? DateFormatter.localizedString(from: ingredient.dateBought!, dateStyle: .medium, timeStyle: .none) : "N/A"
-                
-                Text("Date bought: \(dateString)")
-                    .font(.custom("Cochin", size: 14))
-                    .italic()
-                    .foregroundColor(.gray)
-                    .padding(.top, 2)
+            .alert("Clear Category", isPresented: $showClearCategoryAlert) {
+                Button("Cancel", role: .cancel) {}
+                Button("Clear \(categoryToClear)", role: .destructive) {
+                    Task {
+                        await ingredientsManager.clearIngredientsByCategory(category: categoryToClear)
+                    }
+                }
+            } message: {
+                Text("Are you sure you want to remove all \(categoryToClear) from your pantry?")
             }
-            .padding()
-            .frame(maxWidth: .infinity)
-            .background(Color.white)
-            .cornerRadius(12)
-            .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: 2)
-            // Add visual feedback when dragging
-            .opacity(isDragging && draggedIngredient?.id == ingredient.id ? 0.5 : 1.0)
-            .overlay(
-                RoundedRectangle(cornerRadius: 12)
-                    .stroke(isDragging && draggedIngredient?.id == ingredient.id ? Color.blue : Color.clear, lineWidth: 2)
-            )
+            .task {
+                await ingredientsManager.fetchIngredients()
+            }
         }
     }
 }
 
-// Extension for IngredientsManager to add the updateIngredientCategory method
-extension IngredientsManager {
-    @MainActor
-    func updateIngredientCategory(_ ingredient: Ingredient, newCategory: String) async {
-        guard let currentUser = Auth.auth().currentUser else {
-            print("No authenticated user found")
-            return
-        }
-        
-        // Create updated ingredient with new category
-        let updatedIngredient = Ingredient(
-            id: ingredient.id,
-            name: ingredient.name,
-            dateBought: ingredient.dateBought,
-            category: newCategory
-        )
-        
-        // Update in Firestore
-        let db = Firestore.firestore()
-        do {
-            try await db.collection("users")
-                .document(currentUser.uid)
-                .collection("ingredients")
-                .document(ingredient.id)
-                .setData(from: updatedIngredient)
+// Separate struct for ingredient card
+struct IngredientCard: View {
+    let ingredient: Ingredient
+
+    var body: some View {
+        VStack {
+            Text(ingredient.name)
+                .font(.custom("Cochin", size: 18))
+                .fontWeight(.bold)
+                .foregroundColor(.black)
+                .lineLimit(1)
             
-            // Update in local state
-            if let index = ingredients.firstIndex(where: { $0.id == ingredient.id }) {
-                ingredients[index] = updatedIngredient
-            }
+            let dateString = ingredient.dateBought != nil ? DateFormatter.localizedString(from: ingredient.dateBought!, dateStyle: .medium, timeStyle: .none) : "N/A"
             
-            print("Ingredient category updated successfully")
-        } catch {
-            print("Error updating ingredient category: \(error.localizedDescription)")
+            Text("Date bought: \(dateString)")
+                .font(.custom("Cochin", size: 14))
+                .italic()
+                .foregroundColor(.gray)
+                .padding(.top, 2)
         }
+        .padding()
+        .frame(maxWidth: .infinity)
+        .background(Color.white)
+        .cornerRadius(12)
+        .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: 2)
     }
 }
 

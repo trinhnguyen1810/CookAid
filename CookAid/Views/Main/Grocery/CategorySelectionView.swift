@@ -5,22 +5,17 @@ struct CategorySelectionView: View {
     let groceryManager: GroceryManager
     let onAdd: () -> Void
     
-    // Initialize with auto-selected category based on ingredient name
-    @State private var selectedCategory: String
+    @State private var selectedCategory: String = ""
+    @State private var errorMessage: String? = nil
+    @State private var showingError: Bool = false
+    
     @Environment(\.presentationMode) var presentationMode
     
-    init(ingredient: RecipeIngredient, groceryManager: GroceryManager, onAdd: @escaping () -> Void) {
-        self.ingredient = ingredient
-        self.groceryManager = groceryManager
-        self.onAdd = onAdd
-        
-        // Auto-select a category based on the ingredient name
-        let autoCategory = IngredientCategorizer.categorize(ingredient.name)
-        _selectedCategory = State(initialValue: autoCategory)
-    }
+    // Get categories from IngredientCategorizer
+    private let categories = IngredientCategorizer.categories
     
     var body: some View {
-        VStack(spacing: 20) {
+        VStack {
             Text("Adding to Grocery List:")
                 .font(.custom("Cochin", size: 20))
                 .padding(.top)
@@ -29,25 +24,32 @@ struct CategorySelectionView: View {
                 .font(.custom("Cochin", size: 22))
                 .fontWeight(.bold)
                 .padding(.bottom)
+                
+            Text("Select a category")
+                .font(.custom("Cochin", size: 18))
+                .foregroundColor(.gray)
+                .padding(.bottom, 5)
             
-            // Display ingredient amount and unit if available
-            if ingredient.amount > 0 {
-                Text("\(formatNumber(ingredient.amount)) \(ingredient.unit)")
-                    .font(.custom("Cochin", size: 18))
-                    .foregroundColor(.gray)
-                    .padding(.bottom, 10)
-            }
-            
-            // Use a simple picker with pre-selected category
-            Picker("Category", selection: $selectedCategory) {
-                ForEach(IngredientCategorizer.categories, id: \.self) { category in
-                    Text(category)
-                        .font(.custom("Cochin", size: 18))
+            List {
+                ForEach(categories, id: \.self) { category in
+                    Button(action: {
+                        selectedCategory = category
+                    }) {
+                        HStack {
+                            Text(category)
+                                .font(.custom("Cochin", size: 18))
+                            
+                            Spacer()
+                            
+                            if category == selectedCategory {
+                                Image(systemName: "checkmark")
+                                    .foregroundColor(.black)
+                            }
+                        }
+                    }
+                    .buttonStyle(PlainButtonStyle())
                 }
             }
-            .pickerStyle(WheelPickerStyle())
-            .frame(height: 150)
-            .padding(.horizontal)
             
             Button(action: {
                 addToGroceryList()
@@ -62,25 +64,60 @@ struct CategorySelectionView: View {
                     .cornerRadius(10)
             }
             .padding()
+            .disabled(selectedCategory.isEmpty)
+        }
+        .onAppear {
+            // Auto-select category using IngredientCategorizer
+            selectedCategory = IngredientCategorizer.categorize(ingredient.name)
+        }
+        .alert(isPresented: $showingError) {
+            Alert(
+                title: Text("Error"),
+                message: Text(errorMessage ?? "Unknown error occurred"),
+                dismissButton: .default(Text("OK"))
+            )
         }
     }
     
     private func addToGroceryList() {
-        // Create a new grocery item with the selected category
+        // Format the ingredient string
+        let groceryItemName = "\(ingredient.name) - \(formatNumber(ingredient.amount)) \(ingredient.unit)"
+        
+        // Check for duplicates
+        if isDuplicate(name: groceryItemName) {
+            errorMessage = "This ingredient already exists in your grocery list"
+            showingError = true
+            return
+        }
+        
+        // Create a new grocery item
         let groceryItem = GroceryItem(
             id: UUID().uuidString,
-            name: "\(ingredient.name) - \(formatNumber(ingredient.amount)) \(ingredient.unit)",
-            category: selectedCategory
+            name: groceryItemName,
+            category: selectedCategory,
+            completed: false
         )
         
-        // Add to grocery list using grocery manager
+        // Add to grocery list
         groceryManager.addGroceryItem(groceryItem)
         
-        // Call the closure to dismiss the sheet from the parent view
+        // Call the completion handler
         onAdd()
     }
     
+    // Format number helper
     private func formatNumber(_ number: Double) -> String {
         return number.truncatingRemainder(dividingBy: 1) == 0 ? String(format: "%.0f", number) : String(format: "%.1f", number)
+    }
+    
+    // Check if the item already exists in the grocery list
+    private func isDuplicate(name: String) -> Bool {
+        return groceryManager.groceryItems.contains { item in
+            // Extract just the base name if it contains " - " separator
+            let itemBaseName = item.name.components(separatedBy: " - ").first ?? item.name
+            let nameToCheck = name.components(separatedBy: " - ").first ?? name
+            
+            return itemBaseName.lowercased() == nameToCheck.lowercased()
+        }
     }
 }

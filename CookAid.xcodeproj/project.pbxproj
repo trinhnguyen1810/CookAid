@@ -100,6 +100,7 @@
 		ACA759162D0A79D400690CE7 /* MealPlannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACA759152D0A79D400690CE7 /* MealPlannerView.swift */; };
 		ACAD80202DA04AC9009E16BE /* EditableGroceryItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACAD801F2DA04AC9009E16BE /* EditableGroceryItem.swift */; };
 		ACAD80252DA05350009E16BE /* IngredientCategorizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACAD80242DA05350009E16BE /* IngredientCategorizer.swift */; };
+		ACAD80272DA09536009E16BE /* EditGroceryItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACAD80262DA09536009E16BE /* EditGroceryItemView.swift */; };
 		ACB3418B2CD05A800029FC2E /* InputView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACB3418A2CD05A800029FC2E /* InputView.swift */; };
 		ACB3418D2CD09DA90029FC2E /* User.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACB3418C2CD09DA90029FC2E /* User.swift */; };
 		ACB3418F2CD0A4020029FC2E /* AuthViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACB3418E2CD0A4020029FC2E /* AuthViewModel.swift */; };
@@ -176,6 +177,7 @@
 		ACA759152D0A79D400690CE7 /* MealPlannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MealPlannerView.swift; sourceTree = "<group>"; };
 		ACAD801F2DA04AC9009E16BE /* EditableGroceryItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditableGroceryItem.swift; sourceTree = "<group>"; };
 		ACAD80242DA05350009E16BE /* IngredientCategorizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IngredientCategorizer.swift; sourceTree = "<group>"; };
+		ACAD80262DA09536009E16BE /* EditGroceryItemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditGroceryItemView.swift; sourceTree = "<group>"; };
 		ACB3418A2CD05A800029FC2E /* InputView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputView.swift; sourceTree = "<group>"; };
 		ACB3418C2CD09DA90029FC2E /* User.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = User.swift; sourceTree = "<group>"; };
 		ACB3418E2CD0A4020029FC2E /* AuthViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthViewModel.swift; sourceTree = "<group>"; };
@@ -446,6 +448,7 @@
 				AC8AB15A2D040AD9001A0FF4 /* AddGroceryView.swift */,
 				AC94274B2D72BCD50078E460 /* CategorySelectionView.swift */,
 				AC4FD6A82CBBA6D40093A7DC /* GroceryView.swift */,
+				ACAD80262DA09536009E16BE /* EditGroceryItemView.swift */,
 			);
 			path = Grocery;
 			sourceTree = "<group>";
@@ -594,6 +597,7 @@
 				AC7597B82CB914C20047D091 /* SignUpView.swift in Sources */,
 				AC8AB15D2D041564001A0FF4 /* EditProfileView.swift in Sources */,
 				AC8AB1552D03D20D001A0FF4 /* AppDelegate.swift in Sources */,
+				ACAD80272DA09536009E16BE /* EditGroceryItemView.swift in Sources */,
 				AC2E5A992D71EB1A002C8DDC /* CollectionRecipeDetailView.swift in Sources */,
 				AC76CA272D02AD2A001540AF /* EditIngredientView.swift in Sources */,
 				ACA759102D0A4B3200690CE7 /* RecipeCard.swift in Sources */,

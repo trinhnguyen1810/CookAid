@@ -3,57 +3,104 @@ import SwiftUI
 struct AddGroceryView: View {
     @ObservedObject var groceryManager: GroceryManager
     @State private var name: String = ""
-    @State private var category: String = "Others" // Default to Others
+    @State private var category: String = "Others" // Default category
+    @State private var errorMessage: String? = nil
+    @State private var showingError: Bool = false
     @Environment(\.presentationMode) var presentationMode
+    
+    // Get categories from IngredientCategorizer
+    private let categories = IngredientCategorizer.categories
     
     var body: some View {
         NavigationView {
             Form {
                 Section(header: Text("Add Grocery Item")) {
-                    TextField("Item Name", text: $name)
+                    TextField("Grocery Name", text: $name)
                         .font(.custom("Cochin", size: 18))
                         .onChange(of: name) { newValue in
-                            // Auto-categorize as user types
                             if !newValue.isEmpty {
+                                // Automatically categorize as user types
                                 category = IngredientCategorizer.categorize(newValue)
                             }
                         }
-                    
+
                     Picker("Category", selection: $category) {
-                        ForEach(IngredientCategorizer.categories, id: \.self) { category in
+                        ForEach(categories, id: \.self) { category in
                             Text(category)
-                                .font(.custom("Cochin", size: 18))
                         }
                     }
                     .pickerStyle(MenuPickerStyle())
                     .font(.custom("Cochin", size: 18))
                 }
-                
-                Button("Add to Grocery List") {
-                    addGroceryItem()
+
+                Button("Add Grocery") {
+                    addGrocery()
                 }
                 .font(.custom("Cochin", size: 18))
                 .padding()
                 .background(Color.black)
                 .foregroundColor(.white)
                 .cornerRadius(8)
+                .disabled(name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
             }
-            .navigationTitle("Add Grocery Item")
+            .navigationTitle("Add Grocery")
             .navigationBarTitleDisplayMode(.inline)
-            .navigationBarItems(trailing: Button("Cancel") {
-                presentationMode.wrappedValue.dismiss()
-            })
+            .alert(isPresented: $showingError) {
+                Alert(
+                    title: Text("Error"),
+                    message: Text(errorMessage ?? "Unknown error occurred"),
+                    dismissButton: .default(Text("OK"))
+                )
+            }
         }
     }
-    
-    private func addGroceryItem() {
-        let item = GroceryItem(
+
+    private func addGrocery() {
+        // Validate input - trim whitespace
+        let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        
+        // Check if name is empty
+        if trimmedName.isEmpty {
+            errorMessage = "Grocery name cannot be empty"
+            showingError = true
+            return
+        }
+        
+        // Check for duplicates
+        if isDuplicate(name: trimmedName) {
+            errorMessage = "This item already exists in your grocery list"
+            showingError = true
+            return
+        }
+        
+        // Create the grocery item
+        let groceryItem = GroceryItem(
             id: UUID().uuidString,
-            name: name,
-            category: category
+            name: trimmedName,
+            category: category,
+            completed: false
         )
         
-        groceryManager.addGroceryItem(item)
-        presentationMode.wrappedValue.dismiss()
+        // Add to grocery list
+        groceryManager.addGroceryItem(groceryItem)
+        
+        presentationMode.wrappedValue.dismiss();
+    }
+    
+    // Check if the item already exists in the grocery list
+    private func isDuplicate(name: String) -> Bool {
+        return groceryManager.groceryItems.contains { item in
+            // Extract just the base name if it contains " - " separator
+            let itemBaseName = item.name.components(separatedBy: " - ").first ?? item.name
+            let nameToCheck = name.components(separatedBy: " - ").first ?? name
+            
+            return itemBaseName.lowercased() == nameToCheck.lowercased()
+        }
+    }
+}
+
+struct AddGroceryView_Previews: PreviewProvider {
+    static var previews: some View {
+        AddGroceryView(groceryManager: GroceryManager())
     }
 }

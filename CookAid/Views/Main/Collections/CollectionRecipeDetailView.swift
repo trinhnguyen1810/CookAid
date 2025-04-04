@@ -318,10 +318,11 @@ struct CollectionRecipeDetailView: View {
             // Only add if it's not a duplicate
             if !isDuplicate {
                 // Create a new grocery item
+                // Using IngredientCategorizer instead of the custom function
                 let groceryItem = GroceryItem(
                     id: UUID().uuidString,
                     name: groceryItemName,
-                    category: determineCategoryForIngredient(ingredient.name),
+                    category: IngredientCategorizer.categorize(ingredient.name),
                     completed: false
                 )
                 
@@ -340,84 +341,6 @@ struct CollectionRecipeDetailView: View {
             addedMessage = "Added \(addedCount) ingredients to your grocery list!"
         }
         showingAlert = true
-    }
-    
-    // Helper function to intelligently assign a category based on ingredient name
-    private func determineCategoryForIngredient(_ name: String) -> String {
-        let lowercaseName = name.lowercased()
-        
-        // Fruits & Vegetables
-        if lowercaseName.contains("apple") ||
-           lowercaseName.contains("banana") ||
-           lowercaseName.contains("orange") ||
-           lowercaseName.contains("carrot") ||
-           lowercaseName.contains("broccoli") ||
-           lowercaseName.contains("pepper") ||
-           lowercaseName.contains("onion") ||
-           lowercaseName.contains("tomato") ||
-           lowercaseName.contains("lettuce") ||
-           lowercaseName.contains("spinach") ||
-           lowercaseName.contains("celery") ||
-           lowercaseName.contains("avocado") {
-            return "Fruits & Vegetables"
-        }
-        
-        // Protein sources
-        if lowercaseName.contains("chicken") ||
-           lowercaseName.contains("beef") ||
-           lowercaseName.contains("pork") ||
-           lowercaseName.contains("fish") ||
-           lowercaseName.contains("salmon") ||
-           lowercaseName.contains("tuna") ||
-           lowercaseName.contains("shrimp") ||
-           lowercaseName.contains("egg") ||
-           lowercaseName.contains("tofu") {
-            return "Proteins"
-        }
-        
-        // Dairy & Alternatives
-        if lowercaseName.contains("milk") ||
-           lowercaseName.contains("cheese") ||
-           lowercaseName.contains("yogurt") ||
-           lowercaseName.contains("cream") ||
-           lowercaseName.contains("butter") {
-            return "Dairy & Dairy Alternatives"
-        }
-        
-        // Grains and Legumes
-        if lowercaseName.contains("rice") ||
-           lowercaseName.contains("pasta") ||
-           lowercaseName.contains("bread") ||
-           lowercaseName.contains("flour") ||
-           lowercaseName.contains("oat") ||
-           lowercaseName.contains("bean") ||
-           lowercaseName.contains("lentil") {
-            return "Grains and Legumes"
-        }
-        
-        // Spices, Seasonings and Herbs
-        if lowercaseName.contains("salt") ||
-           lowercaseName.contains("pepper") ||
-           lowercaseName.contains("oregano") ||
-           lowercaseName.contains("basil") ||
-           lowercaseName.contains("thyme") ||
-           lowercaseName.contains("spice") ||
-           lowercaseName.contains("garlic") {
-            return "Spices, Seasonings and Herbs"
-        }
-        
-        // Sauces and Condiments
-        if lowercaseName.contains("sauce") ||
-           lowercaseName.contains("ketchup") ||
-           lowercaseName.contains("mustard") ||
-           lowercaseName.contains("mayo") ||
-           lowercaseName.contains("dressing") ||
-           lowercaseName.contains("oil") {
-            return "Sauces and Condiments"
-        }
-        
-        // Default category if no match is found
-        return "Others"
     }
 }
 
