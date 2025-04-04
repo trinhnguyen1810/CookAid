@@ -1,5 +1,4 @@
 import SwiftUI
-
 // Type aliases to make the code cleaner
 typealias RecipeCollection = RecipeCollections.Collection
 typealias CollectionRecipe = RecipeCollections.Recipe
@@ -14,37 +13,65 @@ struct CollectionsView: View {
     
     var body: some View {
         NavigationStack {
-            VStack {
-                if collectionsManager.collections.isEmpty {
-                    EmptyCollectionsView(
-                        showingAddCollectionSheet: $showingAddCollectionSheet,
-                        showingImportRecipeSheet: $showingImportRecipeSheet,
-                        showingCreateRecipeSheet: $showingCreateRecipeSheet
-                    )
-                } else {
-                    CollectionListView(
-                        collections: collectionsManager.collections,
-                        onDelete: { collection in
-                            collectionToDelete = collection
-                            showingConfirmDeletion = true
+            ZStack {
+                VStack(spacing: 0) {
+                    // Title and Add Button
+                    HStack {
+                        Text("My Collections")
+                            .font(.custom("Cochin", size: 25))
+                            .fontWeight(.bold)
+                            .foregroundColor(.black)
+                        
+                        Spacer()
+                        
+                        Button(action: { showingAddCollectionSheet = true }) {
+                            Image(systemName: "plus")
+                                .foregroundColor(.black)
+                                .padding(10)
+                                .background(Color.black.opacity(0.1))
+                                .clipShape(Circle())
                         }
-                    )
+                    }
+                    .padding()
+                    
+                    // Collections List or Empty State
+                    if collectionsManager.collections.isEmpty {
+                        EmptyCollectionsView(
+                            showingAddCollectionSheet: $showingAddCollectionSheet,
+                            showingImportRecipeSheet: $showingImportRecipeSheet,
+                            showingCreateRecipeSheet: $showingCreateRecipeSheet
+                        )
+                    } else {
+                        CollectionListView(
+                            collections: collectionsManager.collections,
+                            onDelete: { collection in
+                                collectionToDelete = collection
+                                showingConfirmDeletion = true
+                            }
+                        )
+                    }
                     
                     // Recipe Creation Options
-                    RecipeCreationOptionsView(
-                        showingImportRecipeSheet: $showingImportRecipeSheet,
-                        showingCreateRecipeSheet: $showingCreateRecipeSheet
-                    )
-                }
-            }
-            .navigationTitle("My Collections")
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(action: { showingAddCollectionSheet = true }) {
-                        Image(systemName: "plus")
+                    if !collectionsManager.collections.isEmpty {
+                        RecipeCreationOptionsView(
+                            showingImportRecipeSheet: $showingImportRecipeSheet,
+                            showingCreateRecipeSheet: $showingCreateRecipeSheet
+                        )
+                        .padding()
                     }
+                    
+                    // Spacer to push content up
+                    Spacer()
+                }
+                
+                // Bottom Tab Bar
+                VStack {
+                    Spacer()
+                    BottomTabBar()
                 }
             }
+            .background(Color.white)
+            .edgesIgnoringSafeArea(.bottom)
             .sheet(isPresented: $showingAddCollectionSheet) {
                 AddCollectionView()
                     .environmentObject(collectionsManager)

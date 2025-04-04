@@ -1,6 +1,11 @@
 import SwiftUI
 import Firebase
 
+// Updated tab enumeration to match the new Bottom Tab Bar
+enum Tab {
+    case home, pantry, recommender, grocery, collections
+}
+
 struct ContentView: View {
     @State private var selectedTab: Tab = .home
     @EnvironmentObject var viewModel: AuthViewModel
@@ -18,10 +23,10 @@ struct ContentView: View {
                             PantryView()
                         case .recommender:
                             MealPlannerView()
-                        case .recipes:
-                            Text("Recipes View")
-                        case .profile:
-                            ProfileView()
+                        case .grocery:
+                            GroceryView()
+                        case .collections:
+                            CollectionsView()
                         }
                     }
                     .navigationBarHidden(true)
@@ -66,14 +71,8 @@ struct ContentView: View {
     }
 }
 
-// Define the tab enumeration
-enum Tab {
-    case home, pantry, recommender, recipes, profile
-}
-
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
         ContentView().environmentObject(AuthViewModel()) // Provide a mock AuthViewModel for preview
     }
 }
-

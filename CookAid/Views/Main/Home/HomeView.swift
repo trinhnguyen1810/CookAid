@@ -278,10 +278,11 @@ struct HomeView_Previews: PreviewProvider {
 // Existing subviews from the previous implementation
 struct HeaderView: View {
     @EnvironmentObject var viewModel: AuthViewModel
+    @State private var showProfileOptions = false
 
     var body: some View {
         HStack {
-            VStack(alignment: .leading) {
+            VStack(alignment: .leading, spacing: 8) {
                 if let user = viewModel.currentUser {
                     Text("Hi, \(user.fullname)")
                         .font(.custom("Cochin", size: 25))
@@ -298,6 +299,62 @@ struct HeaderView: View {
             .padding(.trailing)
 
             Spacer()
+            
+            // Profile Icon with Dropdown
+            Menu {
+                NavigationLink(destination: EditProfileView()) {
+                    HStack {
+                        Image(systemName: "pencil")
+                        Text("Edit Profile")
+                    }
+                }
+                
+                Button(action: {
+                    viewModel.signOut()
+                }) {
+                    HStack {
+                        Image(systemName: "rectangle.portrait.and.arrow.right")
+                        Text("Log Out")
+                    }
+                }
+            } label: {
+                if let user = viewModel.currentUser {
+                    if let profilePicture = user.profilePicture, let url = URL(string: profilePicture) {
+                        AsyncImage(url: url) { image in
+                            image
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width: 35, height: 35)
+                                .clipShape(Circle())
+                                .overlay(
+                                    Circle().stroke(Color.black, lineWidth: 1.5)
+                                )
+                        } placeholder: {
+                            Image(systemName: "person.fill")
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width: 30, height: 30)
+                                .clipShape(Circle())
+                                .overlay(
+                                    Circle().stroke(Color.black, lineWidth: 1.5)
+                                )
+                                .foregroundColor(.gray)
+                        }
+                    } else {
+                        Image(systemName: "person.fill")
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: 30, height: 30)
+                            .clipShape(Circle())
+                            .overlay(
+                                Circle().stroke(Color.black.opacity(0.2), lineWidth: 1)
+                            )
+                            .foregroundColor(.gray)
+                    }
+                }
+            }
+            .padding(.trailing, 20)
+            .padding(.top, 20)
         }
         .padding(.bottom, 10)
     }

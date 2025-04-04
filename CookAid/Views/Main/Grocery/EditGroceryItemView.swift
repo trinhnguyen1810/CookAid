@@ -2,6 +2,7 @@ import SwiftUI
 
 struct EditGroceryItemView: View {
     @ObservedObject var groceryManager: GroceryManager
+    @StateObject private var ingredientsManager = IngredientsManager()
     @State private var itemName: String
     @State private var itemCategory: String
     @State private var isCompleted: Bool
@@ -46,12 +47,25 @@ struct EditGroceryItemView: View {
                         Text("Save Changes")
                             .frame(maxWidth: .infinity, alignment: .center)
                             .font(.custom("Cochin", size: 18))
-                            .foregroundColor(.white)
+                            .foregroundColor(.black)
                             .padding()
-                            .background(Color.blue)
+                            .background(Color.black.opacity(0.1))
                             .cornerRadius(8)
                     }
                     
+                    
+                    Button(action: {
+                        addToPantry()
+                    }) {
+                        Text("Add to Pantry")
+                            .frame(maxWidth: .infinity, alignment: .center)
+                            .font(.custom("Cochin", size: 18))
+                            .foregroundColor(.black)
+                            .padding()
+                            .background(Color.black.opacity(0.1))
+                            .cornerRadius(8)
+                    }
+                
                     Button(action: {
                         groceryManager.deleteGroceryItem(groceryItem)
                         presentationMode.wrappedValue.dismiss()
@@ -59,9 +73,9 @@ struct EditGroceryItemView: View {
                         Text("Delete Item")
                             .frame(maxWidth: .infinity, alignment: .center)
                             .font(.custom("Cochin", size: 18))
-                            .foregroundColor(.white)
+                            .foregroundColor(.red)
                             .padding()
-                            .background(Color.red)
+                            .background(Color.red.opacity(0.1))
                             .cornerRadius(8)
                     }
                 }
@@ -90,6 +104,31 @@ struct EditGroceryItemView: View {
             
             // Update the item in the manager
             groceryManager.updateGroceryItem(updatedItem)
+            presentationMode.wrappedValue.dismiss()
+        }
+    }
+    
+    private func addToPantry() {
+        // Extract just the ingredient name from the full text
+        var ingredientName = groceryItem.name
+        
+        // Check if the name contains a hyphen (which separates name from quantity)
+        if let hyphenRange = groceryItem.name.range(of: " - ") {
+            // Extract just the part before the hyphen
+            ingredientName = String(groceryItem.name[..<hyphenRange.lowerBound])
+        }
+        
+        let newIngredient = Ingredient(
+            id: groceryItem.id,
+            name: ingredientName, // Use the extracted name
+            dateBought: Date(),
+            category: groceryItem.category
+        )
+        
+        // Add to pantry using IngredientsManager
+        Task {
+            await ingredientsManager.addIngredient(newIngredient)
+            groceryManager.deleteGroceryItem(groceryItem)
             presentationMode.wrappedValue.dismiss()
         }
     }
