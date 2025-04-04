@@ -175,11 +175,14 @@ struct GroceryView: View {
         
         return AnyView(
             VStack(alignment: .leading, spacing: 5) {
-                Text(category)
-                    .font(.custom("Cochin", size: 22))
-                    .fontWeight(.bold)
-                    .padding(.top, 10)
-                    .padding(.horizontal)
+                HStack {
+                    Text(categoryEmoji(for: category))
+                    Text(category)
+                        .font(.custom("Cochin", size: 22))
+                        .fontWeight(.bold)
+                }
+                .padding(.top, 10)
+                .padding(.horizontal)
 
                 ForEach(filteredItems) { item in
                     groceryItemView(item: item)
@@ -262,3 +265,18 @@ struct GroceryView: View {
     }
 }
 
+extension GroceryView {
+    private func categoryEmoji(for category: String) -> String {
+        switch category {
+        case "Fruits & Vegetables": return "🍎"
+        case "Proteins": return "🥩"
+        case "Dairy & Dairy Alternatives": return "🥛"
+        case "Grains and Legumes": return "🌾"
+        case "Spices, Seasonings and Herbs": return "🌿"
+        case "Sauces and Condiments": return "🥫"
+        case "Baking Essentials": return "🥣"
+        case "Others": return "📦"
+        default: return "📦"
+        }
+    }
+}

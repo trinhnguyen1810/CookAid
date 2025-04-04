@@ -24,20 +24,6 @@ struct PantryView: View {
                             Spacer()
                             
                             HStack(spacing: 10) {
-                                // Camera Button
-                                Button(action: {
-                                    // Handle scan recipe action
-                                }) {
-                                    HStack {
-                                        Image(systemName: "camera")
-                                            .foregroundColor(.white)
-                                    }
-                                    .padding(.vertical, 10)
-                                    .padding(.horizontal, 15)
-                                    .background(Color.black)
-                                    .cornerRadius(8)
-                                }
-                                
                                 // Menu for Clear options
                                 Menu {
                                     Button(action: {
@@ -129,11 +115,15 @@ struct PantryView: View {
                             ForEach(customOrder, id: \.self) { category in
                                 if let ingredientsInCategory = groupedIngredients[category], !ingredientsInCategory.isEmpty {
                                     VStack(alignment: .leading) {
-                                        Text(category)
-                                            .font(.custom("Cochin", size: 22))
-                                            .fontWeight(.bold)
-                                            .padding(.top, 20)
-                                            .padding(.horizontal)
+                                        HStack {
+                                            Text(categoryEmoji(for: category))
+                                            Text(category)
+                                                .font(.custom("Cochin", size: 22))
+                                                .fontWeight(.bold)
+                                        }
+                                        .padding(.top, 20)
+                                        .padding(.horizontal)
+                                        
                                         
                                         // LazyVGrid for two cards in a row
                                         LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 2), spacing: 10) {
@@ -221,6 +211,23 @@ struct IngredientCard: View {
         .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: 2)
     }
 }
+
+extension PantryView {
+    private func categoryEmoji(for category: String) -> String {
+        switch category {
+        case "Proteins": return "🥩"
+        case "Dairy & Dairy Alternatives": return "🥛"
+        case "Grains and Legumes": return "🌾"
+        case "Fruits & Vegetables": return "🥦"
+        case "Spices, Seasonings and Herbs": return "🌿"
+        case "Sauces and Condiments": return "🥫"
+        case "Cooking Essentials": return "🧂"
+        case "Others": return "📦"
+        default: return "📦"
+        }
+    }
+}
+
 
 struct PantryView_Previews: PreviewProvider {
     static var previews: some View {

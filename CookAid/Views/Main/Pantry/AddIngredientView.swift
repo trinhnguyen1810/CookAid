@@ -1,4 +1,3 @@
-// CookAid/Views/Main/AddIngredientView.swift
 import SwiftUI
 import Firebase
 import FirebaseFirestore
@@ -10,7 +9,20 @@ struct AddIngredientView: View {
     @Environment(\.presentationMode) var presentationMode
     @State private var category: String = "Others"
     @State private var dateBought: Date? = Date()
-    @State private var categories = ["Proteins", "Dairy & Dairy Alternatives", "Grains and Legumes", "Fruits & Vegetables", "Spices, Seasonings and Herbs", "Sauces and Condiments", "Cooking Essentials", "Others"]
+    
+    // Emoji mapping for categories
+    private func categoryEmoji(for category: String) -> String {
+        switch category {
+        case "Proteins": return "🥩 Proteins"
+        case "Dairy & Dairy Alternatives": return "🥛 Dairy & Dairy Alternatives"
+        case "Grains and Legumes": return "🌾 Grains and Legumes"
+        case "Fruits & Vegetables": return "🍎 Fruits & Vegetables"
+        case "Spices, Seasonings and Herbs": return "🌿 Spices, Seasonings and Herbs"
+        case "Sauces and Condiments": return "🥫 Sauces and Condiments"
+        case "Cooking Essentials": return "🧂 Cooking Essentials"
+        default: return "📦 Others"
+        }
+    }
 
     var body: some View {
         NavigationView {
@@ -25,11 +37,13 @@ struct AddIngredientView: View {
                             }
                         }
                     
-                    // Simple picker with pre-selected category
+                    // Picker with emojis
                     Picker("Category", selection: $category) {
                         ForEach(IngredientCategorizer.categories, id: \.self) { category in
-                            Text(category)
-                                .font(.custom("Cochin", size: 18))
+                            HStack {
+                                Text(categoryEmoji(for: category))
+                            }
+                            .tag(category)
                         }
                     }
                     .pickerStyle(MenuPickerStyle())
@@ -53,6 +67,13 @@ struct AddIngredientView: View {
             }
             .navigationTitle("Add Ingredient")
             .navigationBarTitleDisplayMode(.inline)
+            .alert(isPresented: $showDuplicateAlert) {
+                Alert(
+                    title: Text("Duplicate Ingredient"),
+                    message: Text("An ingredient with this name already exists in your pantry."),
+                    dismissButton: .default(Text("OK"))
+                )
+            }
         }
     }
 

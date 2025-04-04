@@ -11,6 +11,21 @@ struct AddGroceryView: View {
     // Get categories from IngredientCategorizer
     private let categories = IngredientCategorizer.categories
     
+    // Emoji mapping for categories
+    private func categoryEmoji(for category: String) -> String {
+        switch category {
+        case "Fruits & Vegetables": return "🍎 Fruits & Vegetables"
+        case "Proteins": return "🥩 Proteins"
+        case "Dairy & Dairy Alternatives": return "🥛 Dairy & Dairy Alternatives"
+        case "Grains and Legumes": return "🌾 Grains and Legumes"
+        case "Spices, Seasonings and Herbs": return "🌿 Spices, Seasonings and Herbs"
+        case "Sauces and Condiments": return "🥫 Sauces and Condiments"
+        case "Baking Essentials": return "🥣 Baking Essentials"
+        case "Others": return "📦 Others"
+        default: return "📦 Others"
+        }
+    }
+    
     var body: some View {
         NavigationView {
             Form {
@@ -26,12 +41,16 @@ struct AddGroceryView: View {
 
                     Picker("Category", selection: $category) {
                         ForEach(categories, id: \.self) { category in
-                            Text(category)
+                            HStack {
+                                Text(categoryEmoji(for: category))
+                            }
+                            .tag(category)
                         }
                     }
                     .pickerStyle(MenuPickerStyle())
                     .font(.custom("Cochin", size: 18))
                 }
+                
 
                 Button("Add Grocery") {
                     addGrocery()
@@ -84,7 +103,7 @@ struct AddGroceryView: View {
         // Add to grocery list
         groceryManager.addGroceryItem(groceryItem)
         
-        presentationMode.wrappedValue.dismiss();
+        presentationMode.wrappedValue.dismiss()
     }
     
     // Check if the item already exists in the grocery list
