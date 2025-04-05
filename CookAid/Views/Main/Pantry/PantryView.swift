@@ -151,6 +151,14 @@ struct PantryView: View {
                     .padding(.bottom, 30)
             }
             .edgesIgnoringSafeArea(.bottom)
+            .onAppear {
+                // Force refresh if not initialized
+                if !ingredientsManager.isInitialized {
+                    ingredientsManager.forceRefresh()
+                    print("PantryView: Forced ingredients refresh on appear")
+                }
+            }
+            
             .sheet(item: $selectedIngredient) { ingredient in
                 EditIngredientView(ingredients: $ingredientsManager.ingredients, ingredient: ingredient)
             }

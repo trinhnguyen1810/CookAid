@@ -5,16 +5,23 @@ import FirebaseAuth
 
 class IngredientsManager: ObservableObject {
     @Published var ingredients: [Ingredient] = []
+    @Published var isInitialized = false // Track initialization state
     private var recipeAPIManager: RecipeAPIManager?
     private var listenerRegistration: ListenerRegistration?
     
     init(recipeAPIManager: RecipeAPIManager) {
         self.recipeAPIManager = recipeAPIManager
-        setupIngredientsListener()
+        // Add a slight delay to ensure auth is complete
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+            self?.setupIngredientsListener()
+        }
     }
 
     init() {
-        setupIngredientsListener()
+        // Add a slight delay to ensure auth is complete
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+            self?.setupIngredientsListener()
+        }
     }
     
     deinit {
@@ -26,6 +33,11 @@ class IngredientsManager: ObservableObject {
     private func setupIngredientsListener() {
         guard let currentUser = Auth.auth().currentUser else {
             print("No authenticated user found")
+            // Mark as initialized even if no user found
+            DispatchQueue.main.async {
+                self.isInitialized = true
+                print("Ingredients manager marked as initialized (no user)")
+            }
             return
         }
         
@@ -46,12 +58,28 @@ class IngredientsManager: ObservableObject {
             
             guard let documents = snapshot?.documents else {
                 print("No ingredients found")
+                // Empty data is still valid data
+                DispatchQueue.main.async {
+                    self.ingredients = []
+                    // Ensure we mark as initialized
+                    self.isInitialized = true
+                    print("Ingredients manager initialized with empty list")
+                }
                 return
             }
             
             // Update ingredients with the latest data
-            self.ingredients = documents.compactMap { document in
+            let newIngredients = documents.compactMap { document in
                 try? document.data(as: Ingredient.self)
+            }
+            
+            DispatchQueue.main.async {
+                self.ingredients = newIngredients
+                // Mark as initialized when we get first data
+                self.isInitialized = true
+                print("Ingredients manager initialized with \(newIngredients.count) ingredients")
+                // Explicitly notify listeners
+                self.objectWillChange.send()
             }
         }
     }
@@ -61,7 +89,22 @@ class IngredientsManager: ObservableObject {
         // Only proceed if we don't have a listener already
         if listenerRegistration == nil {
             setupIngredientsListener()
+        } else if !isInitialized {
+            // If we have a listener but it's not initialized, force refresh
+            forceRefresh()
         }
+    }
+    
+    // Add a method to force refresh when needed
+    func forceRefresh() {
+        print("Force refreshing ingredients manager")
+        if let listenerRegistration = listenerRegistration {
+            // Remove existing listener
+            listenerRegistration.remove()
+            self.listenerRegistration = nil
+        }
+        // Set up a new listener
+        setupIngredientsListener()
     }
 
     func addIngredient(_ ingredient: Ingredient) async {
@@ -85,7 +128,12 @@ class IngredientsManager: ObservableObject {
                 .setData(from: ingredient)
             
             await MainActor.run {
-                // No need to manually update the array - the listener will handle it
+                // Force an explicit update if the listener is slow
+                if !self.ingredients.contains(where: { $0.id == ingredient.id }) {
+                    self.ingredients.append(ingredient)
+                    self.objectWillChange.send()
+                    print("Manually added ingredient to local array: \(ingredient.name)")
+                }
             }
             
             if let recipeAPIManager = recipeAPIManager {

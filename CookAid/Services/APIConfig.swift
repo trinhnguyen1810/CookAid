@@ -1,6 +1,7 @@
 import Foundation
 
-struct APIConfig {
+// Use a class for a singleton pattern
+class APIConfig {
     static let shared = APIConfig()
     
     private var apiKeys: [String: String] = [:]
@@ -9,24 +10,22 @@ struct APIConfig {
         loadAPIKeys()
     }
     
-    private mutating func loadAPIKeys() {
+    private func loadAPIKeys() {
+        // Try to load from environment variables 
         if let rapidAPIKey = ProcessInfo.processInfo.environment["RAPIDAPI_KEY"] {
             apiKeys["RAPIDAPI_KEY"] = rapidAPIKey
             return
         }
         
+        // Try to load from plist file
         if let path = Bundle.main.path(forResource: "APIKeys", ofType: "plist"),
            let keys = NSDictionary(contentsOfFile: path) as? [String: String] {
             apiKeys = keys
             return
         }
         
- 
-        loadFromKeychain()
-    }
-    
-    private mutating func loadFromKeychain() {
-
+        // If no keys are found, log a warning
+        print("WARNING: No API keys found. API functionality may be limited.")
     }
     
     func apiKey(for service: APIService) -> String? {
@@ -51,4 +50,3 @@ struct APIConfig {
 enum APIService: String {
     case spoonacular = "RAPIDAPI_KEY"
 }
-

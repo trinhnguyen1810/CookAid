@@ -4,6 +4,7 @@ struct RecipeDetailView: View {
    var recipeId: Int
    @State private var recipeDetail: RecipeDetail?
    @State private var errorMessage: String?
+   @State private var isLoading = false
    
    private func formatNumber(_ number: Double) -> String {
        return number.truncatingRemainder(dividingBy: 1) == 0 ? String(format: "%.0f", number) : String(format: "%.2f", number)
@@ -12,7 +13,11 @@ struct RecipeDetailView: View {
    var body: some View {
        ScrollView {
            VStack(alignment: .leading, spacing: 16) {
-               if let recipe = recipeDetail {
+               if isLoading {
+                   ProgressView()
+                       .frame(maxWidth: .infinity, maxHeight: .infinity)
+                       .padding(.top, 100)
+               } else if let recipe = recipeDetail {
                    // Title
                    Text(recipe.title)
                        .font(.custom("Cochin", size: 22))
@@ -88,8 +93,6 @@ struct RecipeDetailView: View {
                    Text(errorMessage)
                        .foregroundColor(.red)
                        .padding()
-               } else {
-                   ProgressView()
                }
            }
            .padding(.vertical)
@@ -100,68 +103,87 @@ struct RecipeDetailView: View {
        }
    }
    
-   private func cleanHTML(_ input: String) -> String {
-       var output = input.replacingOccurrences(of: "<[^>]+>", with: "", options: .regularExpression, range: nil)
-       output = output.replacingOccurrences(of: "&quot;", with: "\"")
-       output = output.replacingOccurrences(of: "&amp;", with: "&")
-       output = output.replacingOccurrences(of: "&lt;", with: "<")
-       output = output.replacingOccurrences(of: "&gt;", with: ">")
-       output = output.replacingOccurrences(of: "\\n", with: "\n")
-       return output
-   }
-   
    private func fetchRecipeDetails() {
-       let apiKey = "f1c8e26a6f554159ab2714022bbee9c7"
-       let urlString = "https://api.spoonacular.com/recipes/\(recipeId)/information?apiKey=\(apiKey)"
+       // Reset state
+       isLoading = true
+       errorMessage = nil
+       recipeDetail = nil
        
-       guard let url = URL(string: urlString) else {
+       // Get API headers from the APIConfig service
+       let headers = APIConfig.shared.headers(for: .spoonacular)
+       
+       // Build the URL
+       guard let url = URL(string: "https://spoonacular-recipe-food-nutrition-v1.p.rapidapi.com/recipes/\(recipeId)/information") else {
            errorMessage = "Invalid URL"
+           isLoading = false
            return
        }
        
-       let config = URLSessionConfiguration.default
-       config.timeoutIntervalForRequest = 30 // Set timeout to 30 seconds
-       let session = URLSession(configuration: config)
+       // Build the request
+       var request = URLRequest(url: url)
+       request.httpMethod = "GET"
+       request.allHTTPHeaderFields = headers
        
-       session.dataTask(with: url) { data, response, error in
+       // Log request for debugging
+       print("Fetching recipe details for ID: \(recipeId)")
+       
+       // Execute the request
+       URLSession.shared.dataTask(with: request) { data, response, error in
+           // Handle network error
            if let error = error {
                DispatchQueue.main.async {
+                   isLoading = false
                    errorMessage = "Error fetching recipe details: \(error.localizedDescription)"
+                   print("Network error: \(error)")
                }
                return
            }
            
+           // Check HTTP status code
            if let httpResponse = response as? HTTPURLResponse {
                print("HTTP Response Status Code: \(httpResponse.statusCode)")
+               
+               // Handle non-200 responses
                if httpResponse.statusCode != 200 {
                    DispatchQueue.main.async {
-                       errorMessage = "Error: Received HTTP \(httpResponse.statusCode)"
+                       isLoading = false
+                       errorMessage = "Server error: HTTP \(httpResponse.statusCode)"
                    }
                    return
                }
            }
            
+           // Check if we received data
            guard let data = data else {
                DispatchQueue.main.async {
-                   errorMessage = "No data received"
+                   isLoading = false
+                   errorMessage = "No data received from server"
                }
                return
            }
            
+           // Debug: Print raw response (only in development builds)
+           #if DEBUG
            if let rawString = String(data: data, encoding: .utf8) {
-               print("Raw data: \(rawString)")
+               print("Raw data (first 500 chars): \(String(rawString.prefix(500)))...")
            }
+           #endif
            
+           // Try to decode the response
            do {
                let decoder = JSONDecoder()
                let recipeDetail = try decoder.decode(RecipeDetail.self, from: data)
+               
                DispatchQueue.main.async {
+                   isLoading = false
                    self.recipeDetail = recipeDetail
                    self.errorMessage = nil
                }
            } catch {
                print("Decoding error: \(error)")
+               
                DispatchQueue.main.async {
+                   isLoading = false
                    errorMessage = "Error decoding recipe details: \(error.localizedDescription)"
                }
            }

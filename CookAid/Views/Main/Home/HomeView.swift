@@ -105,6 +105,12 @@ struct HomeView: View {
                 BottomTabBar()
             }
         }
+        .onAppear {
+                if !ingredientsManager.isInitialized {
+                    ingredientsManager.forceRefresh()
+                    print("refresh on appear")
+                }
+            }
         .sheet(isPresented: $showingAddIngredientView) {
             AddIngredientView(ingredients: $ingredientsManager.ingredients)
         }
@@ -239,14 +245,28 @@ struct HomeView: View {
         
         // Only load these if not searching and there are ingredients
         if !isSearching && !ingredientsManager.ingredients.isEmpty {
+            // Debug: Print all ingredients being sent
+            let allIngredientNames = ingredientsManager.ingredients.map { $0.name }
+            print("DEBUG - All ingredients in pantry: \(allIngredientNames)")
+            print("DEBUG - Number of ingredients: \(allIngredientNames.count)")
+            
+            // Clear existing recipes before fetching new ones
+            // This ensures we're showing fresh results
+            if !recipeAPIManager.isLoading {
+                recipeAPIManager.recipes = []
+                recipeAPIManager.quickrecipes = []
+            }
+            
+            // Fetch recipes with all ingredients
             recipeAPIManager.fetchRecipes(
-                ingredients: ingredientsManager.ingredients.map { $0.name },
+                ingredients: allIngredientNames,
                 diets: selectedDiets.map { formatForAPI($0) },
                 intolerances: selectedIntolerances.map { formatForAPI($0) }
             )
             
+            // Also update quick meals
             recipeAPIManager.fetchQuickMeals(
-                ingredients: ingredientsManager.ingredients.map { $0.name },
+                ingredients: allIngredientNames,
                 diets: selectedDiets.map { formatForAPI($0) },
                 intolerances: selectedIntolerances.map { formatForAPI($0) }
             )

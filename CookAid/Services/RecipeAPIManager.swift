@@ -16,7 +16,26 @@ class RecipeAPIManager: ObservableObject, NetworkErrorHandler {
     
     @MainActor
     func fetchRecipes(ingredients: [String], diets: [String] = [], intolerances: [String] = []) {
-        let ingredientsString = ingredients.joined(separator: "%2C")
+        // First, sanitize ingredient names to remove any problematic characters
+        let sanitizedIngredients = ingredients.map {
+            $0.trimmingCharacters(in: .whitespacesAndNewlines)
+             .replacingOccurrences(of: ",", with: " ")
+        }.filter { !$0.isEmpty }
+        
+        // Debug: Print cleaned ingredients list going to API
+        print("DEBUG - Sending ingredients to API: \(sanitizedIngredients)")
+        
+        // Only proceed if we have ingredients
+        guard !sanitizedIngredients.isEmpty else {
+            self.loadingState = .error("No valid ingredients to search with")
+            return
+        }
+        
+        // Properly encode ingredients for URL
+        let ingredientsString = sanitizedIngredients.joined(separator: ",")
+        
+        // Debug: Print the final ingredient string
+        print("DEBUG - Final ingredients string: \(ingredientsString)")
         
         guard var urlComponents = URLComponents(string: "https://spoonacular-recipe-food-nutrition-v1.p.rapidapi.com/recipes/findByIngredients") else {
             self.loadingState = .error("Invalid URL")
@@ -25,10 +44,21 @@ class RecipeAPIManager: ObservableObject, NetworkErrorHandler {
         
         urlComponents.queryItems = [
             URLQueryItem(name: "ingredients", value: ingredientsString),
-            URLQueryItem(name: "number", value: "6"),
+            URLQueryItem(name: "number", value: "2"),
             URLQueryItem(name: "ignorePantry", value: "true"),
-            URLQueryItem(name: "ranking", value: "2")
+            URLQueryItem(name: "ranking", value: "1")
         ]
+        
+        // Add additional parameters if needed
+        if !diets.isEmpty {
+            print("DEBUG - Adding diets: \(diets)")
+            // Note: For this endpoint, additional params may be needed depending on API changes
+        }
+        
+        if !intolerances.isEmpty {
+            print("DEBUG - Adding intolerances: \(intolerances)")
+            // Note: For this endpoint, additional params may be needed depending on API changes
+        }
         
         guard let url = urlComponents.url else {
             self.loadingState = .error("Invalid URL")
@@ -38,6 +68,10 @@ class RecipeAPIManager: ObservableObject, NetworkErrorHandler {
         var request = URLRequest(url: url, cachePolicy: .useProtocolCachePolicy, timeoutInterval: 10.0)
         request.httpMethod = "GET"
         request.allHTTPHeaderFields = headers
+        
+        // Debug: Print full request details
+        print("DEBUG - Request URL: \(url.absoluteString)")
+        print("DEBUG - Headers: \(String(describing: headers))")
         
         // Update loading state
         self.loadingState = .loading
@@ -51,11 +85,14 @@ class RecipeAPIManager: ObservableObject, NetworkErrorHandler {
                 if let error = error {
                     self.errorMessage = "Error fetching recipes: \(error.localizedDescription)"
                     self.loadingState = .error(self.handleNetworkError(error))
+                    print("DEBUG - Network error: \(error)")
                     return
                 }
                 
                 // Check HTTP response
                 if let httpResponse = response as? HTTPURLResponse {
+                    print("DEBUG - HTTP Status: \(httpResponse.statusCode)")
+                    
                     guard (200...299).contains(httpResponse.statusCode) else {
                         self.errorMessage = "HTTP \(httpResponse.statusCode) error"
                         self.loadingState = .error(self.handleHTTPError(httpResponse.statusCode))
@@ -71,12 +108,13 @@ class RecipeAPIManager: ObservableObject, NetworkErrorHandler {
                 
                 do {
                     let recipes = try JSONDecoder().decode([Recipe].self, from: data)
-                    self.recipes = recipes
+                    print("DEBUG - Received \(recipes.count) recipes")
                     
                     // Update loading state based on results
                     if recipes.isEmpty {
                         self.loadingState = .error("No recipes found")
                     } else {
+                        self.recipes = recipes
                         self.loadingState = .success
                     }
                     
@@ -84,10 +122,11 @@ class RecipeAPIManager: ObservableObject, NetworkErrorHandler {
                 } catch {
                     self.errorMessage = "Error decoding recipes: \(error.localizedDescription)"
                     self.loadingState = .error("Failed to decode recipes")
+                    print("DEBUG - Decoding error: \(error)")
                     
                     // Print raw JSON for debugging
                     if let jsonString = String(data: data, encoding: .utf8) {
-                        print("Raw JSON Response: \(jsonString)")
+                        print("DEBUG - Raw JSON Response (first 500 chars): \(String(jsonString.prefix(500)))...")
                     }
                 }
             }
@@ -147,7 +186,7 @@ class RecipeAPIManager: ObservableObject, NetworkErrorHandler {
     
     @MainActor
     func fetchQuickMeals(ingredients: [String], diets: [String] = [], intolerances: [String] = []) {
-        let ingredientsString = ingredients.joined(separator: "%2C")
+        let ingredientsString = ingredients.joined(separator: ",")
         
         guard var urlComponents = URLComponents(string: "https://spoonacular-recipe-food-nutrition-v1.p.rapidapi.com/recipes/searchComplex") else {
             self.loadingState = .error("Invalid URL")
@@ -157,17 +196,17 @@ class RecipeAPIManager: ObservableObject, NetworkErrorHandler {
         urlComponents.queryItems = [
             URLQueryItem(name: "includeIngredients", value: ingredientsString),
             URLQueryItem(name: "maxReadyTime", value: "30"),
-            URLQueryItem(name: "number", value: "6"),
+            URLQueryItem(name: "number", value: "2"),
             URLQueryItem(name: "ranking", value: "1")
         ]
         
         // Add optional diet and intolerances
         if !diets.isEmpty {
-            urlComponents.queryItems?.append(URLQueryItem(name: "diet", value: diets.joined(separator: "%2C")))
+            urlComponents.queryItems?.append(URLQueryItem(name: "diet", value: diets.joined(separator: ",")))
         }
         
         if !intolerances.isEmpty {
-            urlComponents.queryItems?.append(URLQueryItem(name: "intolerances", value: intolerances.joined(separator: "%2C")))
+            urlComponents.queryItems?.append(URLQueryItem(name: "intolerances", value: intolerances.joined(separator: ",")))
         }
         
         guard let url = urlComponents.url else {
@@ -254,11 +293,11 @@ class RecipeAPIManager: ObservableObject, NetworkErrorHandler {
         
         // Add optional diet and intolerances
         if !diets.isEmpty {
-            queryItems.append(URLQueryItem(name: "diet", value: diets.joined(separator: "%2C")))
+            queryItems.append(URLQueryItem(name: "diet", value: diets.joined(separator: ",")))
         }
         
         if !intolerances.isEmpty {
-            queryItems.append(URLQueryItem(name: "intolerances", value: intolerances.joined(separator: "%2C")))
+            queryItems.append(URLQueryItem(name: "intolerances", value: intolerances.joined(separator: ",")))
         }
         
         urlComponents.queryItems = queryItems
