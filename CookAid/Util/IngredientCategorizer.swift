@@ -1,7 +1,6 @@
 import Foundation
 
 struct IngredientCategorizer {
-    // Standard categories used throughout the app
     static let categories = [
         "Fruits & Vegetables",
         "Proteins",

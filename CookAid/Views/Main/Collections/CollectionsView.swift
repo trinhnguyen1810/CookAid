@@ -1,67 +1,75 @@
 import SwiftUI
-// Type aliases to make the code cleaner
+
 typealias RecipeCollection = RecipeCollections.Collection
 typealias CollectionRecipe = RecipeCollections.Recipe
 
 struct CollectionsView: View {
     @EnvironmentObject var collectionsManager: CollectionsManager
     @State private var showingAddCollectionSheet = false
-    @State private var showingImportRecipeSheet = false
-    @State private var showingCreateRecipeSheet = false
     @State private var showingConfirmDeletion = false
     @State private var collectionToDelete: RecipeCollection?
     
     var body: some View {
         NavigationStack {
             ZStack {
-                VStack(spacing: 0) {
-                    // Title and Add Button
+                VStack(alignment: .leading, spacing: 0) {
+                    // Title Header with Add Button
                     HStack {
                         Text("My Collections")
-                            .font(.custom("Cochin", size: 25))
+                            .font(.custom("Cochin", size: 28))
                             .fontWeight(.bold)
-                            .foregroundColor(.black)
                         
                         Spacer()
                         
-                        Button(action: { showingAddCollectionSheet = true }) {
+                        Button(action: {
+                            showingAddCollectionSheet = true
+                        }) {
                             Image(systemName: "plus")
+                                .font(.system(size: 22))
                                 .foregroundColor(.black)
-                                .padding(10)
-                                .background(Color.black.opacity(0.1))
-                                .clipShape(Circle())
                         }
                     }
-                    .padding()
+                    .padding(.horizontal, 20)
+                    .padding(.top, 20)
+                    .padding(.bottom, 10)
                     
                     // Collections List or Empty State
                     if collectionsManager.collections.isEmpty {
                         EmptyCollectionsView(
-                            showingAddCollectionSheet: $showingAddCollectionSheet,
-                            showingImportRecipeSheet: $showingImportRecipeSheet,
-                            showingCreateRecipeSheet: $showingCreateRecipeSheet
+                            showingAddCollectionSheet: $showingAddCollectionSheet
                         )
                     } else {
-                        CollectionListView(
-                            collections: collectionsManager.collections,
-                            onDelete: { collection in
-                                collectionToDelete = collection
-                                showingConfirmDeletion = true
+                        // Collections List
+                        ScrollView {
+                            VStack(spacing: 0) {
+                                ForEach(collectionsManager.collections) { collection in
+                                    CollectionRow(collection: collection)
+                                        .contextMenu {
+                                            Button(action: {
+                                                collectionToDelete = collection
+                                                showingConfirmDeletion = true
+                                            }) {
+                                                Label("Delete", systemImage: "trash")
+                                            }
+                                        }
+                                        .swipeActions(edge: .trailing) {
+                                            Button(role: .destructive) {
+                                                collectionToDelete = collection
+                                                showingConfirmDeletion = true
+                                            } label: {
+                                                Label("Delete", systemImage: "trash")
+                                            }
+                                        }
+                                    
+                                    Divider()
+                                        .padding(.horizontal, 20)
+                                }
+                                
+                                // Add padding at the bottom for tab bar
+                                Spacer().frame(height: 80)
                             }
-                        )
+                        }
                     }
-                    
-                    // Recipe Creation Options
-                    if !collectionsManager.collections.isEmpty {
-                        RecipeCreationOptionsView(
-                            showingImportRecipeSheet: $showingImportRecipeSheet,
-                            showingCreateRecipeSheet: $showingCreateRecipeSheet
-                        )
-                        .padding()
-                    }
-                    
-                    // Spacer to push content up
-                    Spacer()
                 }
                 
                 // Bottom Tab Bar
@@ -70,53 +78,101 @@ struct CollectionsView: View {
                     BottomTabBar()
                 }
             }
-            .background(Color.white)
-            .edgesIgnoringSafeArea(.bottom)
             .sheet(isPresented: $showingAddCollectionSheet) {
                 AddCollectionView()
                     .environmentObject(collectionsManager)
             }
-            .sheet(isPresented: $showingImportRecipeSheet) {
-                ImportRecipeView()
-                    .environmentObject(collectionsManager)
+            .alert("Delete Collection", isPresented: $showingConfirmDeletion) {
+                Button("Cancel", role: .cancel) {
+                    collectionToDelete = nil // Reset state if canceled
+                }
+                Button("Delete", role: .destructive) {
+                    deleteCollection()
+                }
+            } message: {
+                Text("Are you sure you want to delete this collection? This action cannot be undone.")
             }
-            .sheet(isPresented: $showingCreateRecipeSheet) {
-                CreateRecipeView()
-                    .environmentObject(collectionsManager)
-            }
-            .confirmationDialog(
-                "Are you sure you want to delete this collection?",
-                isPresented: $showingConfirmDeletion,
-                titleVisibility: .visible
-            ) {
-                Button("Delete Collection", role: .destructive) {
-                    if let collection = collectionToDelete {
-                        collectionsManager.deleteCollection(collectionId: collection.id)
-                        collectionToDelete = nil
-                    }
+            .background(Color.white)
+            .navigationBarHidden(true)
+        }
+    }
+    
+    // Function to delete the selected collection
+    private func deleteCollection() {
+        if let collection = collectionToDelete {
+            // Provide haptic feedback
+            let generator = UINotificationFeedbackGenerator()
+            generator.notificationOccurred(.success)
+            
+            // Delete the collection
+            collectionsManager.deleteCollection(collectionId: collection.id)
+            
+            // Reset the state
+            collectionToDelete = nil
+            
+            // Note: We don't need to manually update the UI since collectionsManager
+            // is an observed object and will trigger UI updates automatically
+        }
+    }
+}
+
+// Collection Row Component
+struct CollectionRow: View {
+    var collection: RecipeCollection
+    
+    // Format date
+    private var formattedDate: String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        return formatter.string(from: collection.dateCreated)
+    }
+    
+    var body: some View {
+        NavigationLink(destination: CollectionDetailView(collection: collection)) {
+            VStack(alignment: .leading, spacing: 8) {
+                // Collection Name
+                Text(collection.name)
+                    .font(.custom("Cochin", size: 22))
+                    .fontWeight(.bold)
+                    .foregroundColor(.black)
+                
+                // Recipe Count and Date
+                HStack {
+                    Text("\(collection.recipes.count) Recipes")
+                        .font(.custom("Cochin", size: 18))
+                        .foregroundColor(.gray)
+                    
+                    Spacer()
+                    
+                    Text(formattedDate)
+                        .font(.custom("Cochin", size: 16))
+                        .foregroundColor(.gray)
                 }
             }
+            .padding(.vertical, 16)
+            .padding(.horizontal, 20)
         }
+        .buttonStyle(PlainButtonStyle())
     }
 }
 
 // Empty Collections View
 struct EmptyCollectionsView: View {
     @Binding var showingAddCollectionSheet: Bool
-    @Binding var showingImportRecipeSheet: Bool
-    @Binding var showingCreateRecipeSheet: Bool
     
     var body: some View {
-        VStack(spacing: 20) {
+        VStack(spacing: 30) {
+            Spacer()
+            
             Image(systemName: "square.stack")
                 .resizable()
                 .scaledToFit()
-                .frame(width: 100, height: 100)
+                .frame(width: 80, height: 80)
                 .foregroundColor(.gray)
             
             Text("No Collections Yet")
                 .font(.custom("Cochin", size: 24))
-                .foregroundColor(.gray)
+                .foregroundColor(.black)
             
             Text("Create a collection to organize your recipes")
                 .font(.custom("Cochin", size: 18))
@@ -126,133 +182,18 @@ struct EmptyCollectionsView: View {
             
             Button(action: { showingAddCollectionSheet = true }) {
                 Text("Create First Collection")
-                    .padding()
+                    .font(.custom("Cochin", size: 18))
+                    .padding(.vertical, 14)
+                    .padding(.horizontal, 24)
                     .background(Color.black)
                     .foregroundColor(.white)
-                    .cornerRadius(10)
+                    .cornerRadius(8)
             }
-            .padding()
+            .padding(.top, 10)
             
-            Divider()
-                .padding(.vertical)
-            
-            Text("Or add recipes directly")
-                .font(.custom("Cochin", size: 18))
-                .foregroundColor(.gray)
-            
-            HStack(spacing: 20) {
-                Button(action: { showingImportRecipeSheet = true }) {
-                    VStack {
-                        Image(systemName: "link")
-                            .font(.system(size: 24))
-                        Text("Import from Web")
-                            .font(.custom("Cochin", size: 16))
-                    }
-                    .frame(width: 140, height: 100)
-                    .background(Color.blue.opacity(0.1))
-                    .foregroundColor(.blue)
-                    .cornerRadius(10)
-                }
-                
-                Button(action: { showingCreateRecipeSheet = true }) {
-                    VStack {
-                        Image(systemName: "square.and.pencil")
-                            .font(.system(size: 24))
-                        Text("Create Recipe")
-                            .font(.custom("Cochin", size: 16))
-                    }
-                    .frame(width: 140, height: 100)
-                    .background(Color.green.opacity(0.1))
-                    .foregroundColor(.green)
-                    .cornerRadius(10)
-                }
-            }
+            Spacer()
+            Spacer().frame(height: 80) // Space for tab bar
         }
         .padding()
-    }
-}
-
-
-struct RecipeCreationOptionsView: View {
-    @State private var showOptions = false
-    @Binding var showingImportRecipeSheet: Bool
-    @Binding var showingCreateRecipeSheet: Bool
-
-    var body: some View {
-        VStack(spacing: 10) {
-            // Main Button (Wider, Shorter)
-            Button(action: {
-                withAnimation {
-                    showOptions.toggle()
-                }
-            }) {
-                HStack {
-                    Image(systemName: "plus")
-                        .font(.system(size: 16))
-                    Text("Add New Recipe")
-                        .font(.custom("Cochin", size: 16))
-                        .fontWeight(.bold)
-                }
-                .foregroundColor(.white)
-                .padding(10)
-                .frame(width: 260, height: 45) // Wider, Shorter
-                .background(Color.black)
-                .cornerRadius(10)
-            }
-
-            // Options (Wider, Shorter)
-            if showOptions {
-                VStack(spacing: 8) {
-                    RecipeOptionButton(
-                        title: "Import from Web",
-                        icon: "link",
-                        color: .blue
-                    ) {
-                        showingImportRecipeSheet = true
-                    }
-
-                    RecipeOptionButton(
-                        title: "Create Recipe",
-                        icon: "square.and.pencil",
-                        color: .green
-                    ) {
-                        showingCreateRecipeSheet = true
-                    }
-                }
-                .padding(.top, 6)
-                .transition(.opacity.combined(with: .move(edge: .top))) // Smooth animation
-            }
-        }
-        .padding(12)
-        .background(Color.white)
-        .cornerRadius(14)
-        .shadow(radius: 5)
-        .padding(8)
-    }
-}
-
-// Reusable button (Wider, Shorter)
-struct RecipeOptionButton: View {
-    var title: String
-    var icon: String
-    var color: Color
-    var action: () -> Void
-
-    var body: some View {
-        Button(action: action) {
-            HStack {
-                Image(systemName: icon)
-                    .font(.system(size: 16))
-                    .foregroundColor(color)
-                Text(title)
-                    .font(.custom("Cochin", size: 16))
-                    .foregroundColor(color)
-            }
-            .padding(8)
-            .frame(width: 240, height: 40) // Wider, Shorter
-            .background(color.opacity(0.1))
-            .cornerRadius(8)
-            .shadow(color: color.opacity(0.2), radius: 2, x: 0, y: 1)
-        }
     }
 }

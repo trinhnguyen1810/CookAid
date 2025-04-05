@@ -70,6 +70,12 @@ class IngredientsManager: ObservableObject {
             return
         }
         
+        // Check for duplicates before adding
+        if isDuplicate(name: ingredient.name) {
+            print("Duplicate ingredient detected: \(ingredient.name). Not adding to pantry.")
+            return
+        }
+        
         let db = Firestore.firestore()
         do {
             try await db.collection("users")
@@ -111,9 +117,15 @@ class IngredientsManager: ObservableObject {
         }
     }
     
-    // Check if ingredient already exists
+    // Improved duplicate check function
     func isDuplicate(name: String) -> Bool {
-        return ingredients.contains { $0.name.lowercased() == name.lowercased() }
+        // Normalize the name for comparison (trim whitespace and convert to lowercase)
+        let normalizedName = name.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        
+        // Check if any existing ingredient matches the normalized name
+        return ingredients.contains {
+            $0.name.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() == normalizedName
+        }
     }
     
     // Clear all ingredients

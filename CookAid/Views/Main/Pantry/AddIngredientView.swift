@@ -4,6 +4,7 @@ import FirebaseFirestore
 
 struct AddIngredientView: View {
     @Binding var ingredients: [Ingredient] // Binding to update the pantry
+    @StateObject private var ingredientsManager = IngredientsManager() // Add IngredientsManager
     @State private var name: String = ""
     @State private var showDuplicateAlert = false
     @Environment(\.presentationMode) var presentationMode
@@ -13,13 +14,14 @@ struct AddIngredientView: View {
     // Emoji mapping for categories
     private func categoryEmoji(for category: String) -> String {
         switch category {
+        case "Fruits & Vegetables": return "🍎 Fruits & Vegetables"
         case "Proteins": return "🥩 Proteins"
         case "Dairy & Dairy Alternatives": return "🥛 Dairy & Dairy Alternatives"
         case "Grains and Legumes": return "🌾 Grains and Legumes"
-        case "Fruits & Vegetables": return "🍎 Fruits & Vegetables"
         case "Spices, Seasonings and Herbs": return "🌿 Spices, Seasonings and Herbs"
         case "Sauces and Condiments": return "🥫 Sauces and Condiments"
-        case "Cooking Essentials": return "🧂 Cooking Essentials"
+        case "Baking Essentials": return "🥣 Baking Essentials"
+        case "Others": return "📦 Others"
         default: return "📦 Others"
         }
     }
@@ -37,7 +39,7 @@ struct AddIngredientView: View {
                             }
                         }
                     
-                    // Picker with emojis
+                    // Picker with emojis - use the single set of categories from IngredientCategorizer
                     Picker("Category", selection: $category) {
                         ForEach(IngredientCategorizer.categories, id: \.self) { category in
                             HStack {
@@ -74,18 +76,24 @@ struct AddIngredientView: View {
                     dismissButton: .default(Text("OK"))
                 )
             }
+            .onAppear {
+                // Load ingredients on appear to ensure we have the latest data for duplicate checking
+                Task {
+                    await ingredientsManager.fetchIngredients()
+                }
+            }
         }
     }
 
     private func addIngredient() {
-        // Check if ingredient with same name already exists (case-insensitive comparison)
+        // Check if ingredient name is empty
         let ingredientName = name.trimmingCharacters(in: .whitespacesAndNewlines)
         
         // Don't add if name is empty
         guard !ingredientName.isEmpty else { return }
         
-        // Check for duplicates (case-insensitive)
-        if ingredients.contains(where: { $0.name.lowercased() == ingredientName.lowercased() }) {
+        // Use the isDuplicate method from IngredientsManager
+        if ingredientsManager.isDuplicate(name: ingredientName) {
             // Show alert for duplicate ingredient
             showDuplicateAlert = true
             return
@@ -99,7 +107,7 @@ struct AddIngredientView: View {
     private func saveIngredientToFirestore(ingredient: Ingredient) {
         let db = Firestore.firestore()
         do {
-            let _ = try db.collection("users").document(Auth.auth().currentUser!.uid).collection("ingredients").document(ingredient.id).setData(from: ingredient)
+            try db.collection("users").document(Auth.auth().currentUser!.uid).collection("ingredients").document(ingredient.id).setData(from: ingredient)
             print("Ingredient added successfully!")
             presentationMode.wrappedValue.dismiss() // Dismiss the view after adding
         } catch {
