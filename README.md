@@ -2,7 +2,9 @@
 
 ## Project Overview
 CookAid is a comprehensive iOS application developed to address the challenges college students face with meal planning and food waste. The app provides an intuitive solution by recommending recipes based on ingredients already in your pantry, helping users discover new meal ideas while reducing food waste.
+
 The app integrates several key features: smart pantry management to track available ingredients, personalized recipe discovery with dietary filters, customizable recipe collections, an intuitive meal planner, and an intelligent grocery list system. These features work together seamlessly to help users manage their entire cooking workflow from ingredient storage to meal preparation.
+
 Built with SwiftUI and Firebase, CookAid delivers a modern, responsive experience with real-time data synchronization. The application employs intelligent categorization systems and filters to accommodate various dietary preferences and restrictions, making it accessible to diverse users like busy students, eco-conscious individuals, and fitness enthusiasts.
 
 ## Setup Instructions
@@ -10,7 +12,7 @@ Built with SwiftUI and Firebase, CookAid delivers a modern, responsive experienc
 ### Prerequisites
 - **Mac computer** - Required for running Xcode
 - **Xcode** - Latest version (download from the Mac App Store)
-- **Spoonacular API key** - For recipe search functionality. Should be created through Rapid API. Create your key at: https://rapidapi.com/spoonacular/api/recipe-food-nutrition/
+- **Spoonacular API key** - For recipe search functionality
 - **Firebase account** - For authentication and data storage
 
 ### Step 1: Install Xcode
@@ -19,20 +21,21 @@ Built with SwiftUI and Firebase, CookAid delivers a modern, responsive experienc
 3. Launch Xcode and complete the initial setup
 
 ### Step 2: Set Up Firebase
-The app requires Firebase for user authentication and Firestore database functionality. For more information, go to https://firebase.google.com/docs/ios/setup.
+The app requires Firebase for user authentication and Firestore database functionality:
 
 1. Sign in to the [Firebase Console](https://console.firebase.google.com/)
 2. Create a new project (or use an existing one)
 3. Add an iOS app to your Firebase project
-   - Use the bundle ID: `capstone.CookAid`
+   * Use the bundle ID: `com.vivian.CookAid` (or check the actual bundle ID in the Xcode project)
 4. Download the `GoogleService-Info.plist` file
-5. Add the file to the project root directory
+5. Add the file to the `CookAid/CookAid/` directory within the project
+6. After opening the project in Xcode, drag the file into the project navigator (make sure "Copy items if needed" is selected)
 
 > **Note:** For grading purposes, I've included my `GoogleService-Info.plist` file with the submission. Please use this file to test the app's functionality with my Firebase instance.
 
 ### Step 3: Configure API Key
-1. Open the file `CookAid/APIKeys.plist` in a text editor
-2. Add your Spoonacular API key between the `<string></string>` tags. You should generate an API key through this website: https://rapidapi.com/spoonacular/api/recipe-food-nutrition/:
+1. Open the file `CookAid/CookAid/APIKeys.plist` in a text editor (or navigate to it in Xcode after opening the project)
+2. Add your Spoonacular API key between the `<string></string>` tags:
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -46,15 +49,18 @@ The app requires Firebase for user authentication and Firestore database functio
 
 ### Step 4: Open and Run the Project
 1. Launch Xcode
-2. Open the project by selecting the `.xcodeproj` file
-3. Install CocoaPods dependencies (if needed):
-   ```bash
-   sudo gem install cocoapods
-   pod install
-   ```
-   - If this creates a `.xcworkspace` file, use that to open the project instead
-4. Select an iOS simulator (iPhone 14 Pro recommended)
-5. Click the Play button or press `Cmd+R` to build and run. The application is heavy and may take up to 5 minutes or more on its first build
+2. Open the project by selecting the `CookAid.xcodeproj` file
+3. Once Xcode opens the project, simply click the ▶️ (Play) button in the top-left corner to build and run the app
+4. Select an iOS simulator when prompted (iPhone 14 Pro recommended)
+5. Note: The application may take a few minutes to build on first launch
+
+Note: If you encounter any build errors related to dependencies, you may need to install CocoaPods:
+```bash
+sudo gem install cocoapods
+cd path/to/CookAid  # Navigate to project directory
+pod install
+```
+Then open the `.xcworkspace` file instead of the `.xcodeproj` file.
 
 ## App Features
 
@@ -150,12 +156,3 @@ The app requires Firebase for user authentication and Firestore database functio
 - If you encounter build errors, check the Xcode console for details
 - For Firebase-related issues, verify the `GoogleService-Info.plist` file
 - For recipe search issues, confirm the API key is correctly set
-
-## Credits
-- Developed by Vivian Nguyen
-- Spoonacular API for recipe data
-- Firebase for backend services
-- Custom icons and UI components
-
-## License
-This project is for educational purposes only.
