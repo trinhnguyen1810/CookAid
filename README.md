@@ -31,8 +31,6 @@ The app requires Firebase for user authentication and Firestore database functio
 5. Add the file to the `CookAid/CookAid/` directory within the project
 6. After opening the project in Xcode, drag the file into the project navigator (make sure "Copy items if needed" is selected)
 
-> **Note:** For grading purposes, I've included my `GoogleService-Info.plist` file with the submission. Please use this file to test the app's functionality with my Firebase instance.
-
 ### Step 3: Configure API Key
 1. Open the file `CookAid/CookAid/APIKeys.plist` in a text editor (or navigate to it in Xcode after opening the project)
 2. Add your Spoonacular API key between the `<string></string>` tags:
