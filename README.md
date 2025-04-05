@@ -1,14 +1,16 @@
 # CookAid: iOS Recipe Management App
 
 ## Project Overview
-CookAid is a comprehensive iOS application developed in Swift that helps users manage their cooking experience from pantry to plate. The app integrates ingredient tracking, personalized recipe discovery, meal planning, and smart grocery list management in one seamless experience. Built with SwiftUI and Firebase, CookAid delivers a modern, responsive interface with real-time data synchronization.
+CookAid is a comprehensive iOS application developed to address the challenges college students face with meal planning and food waste. The app provides an intuitive solution by recommending recipes based on ingredients already in your pantry, helping users discover new meal ideas while reducing food waste.
+The app integrates several key features: smart pantry management to track available ingredients, personalized recipe discovery with dietary filters, customizable recipe collections, an intuitive meal planner, and an intelligent grocery list system. These features work together seamlessly to help users manage their entire cooking workflow from ingredient storage to meal preparation.
+Built with SwiftUI and Firebase, CookAid delivers a modern, responsive experience with real-time data synchronization. The application employs intelligent categorization systems and filters to accommodate various dietary preferences and restrictions, making it accessible to diverse users like busy students, eco-conscious individuals, and fitness enthusiasts.
 
 ## Setup Instructions
 
 ### Prerequisites
 - **Mac computer** - Required for running Xcode
 - **Xcode** - Latest version (download from the Mac App Store)
-- **Spoonacular API key** - For recipe search functionality. Should be created through Rapid API.
+- **Spoonacular API key** - For recipe search functionality. Should be created through Rapid API. Create your key at: https://rapidapi.com/spoonacular/api/recipe-food-nutrition/
 - **Firebase account** - For authentication and data storage
 
 ### Step 1: Install Xcode
