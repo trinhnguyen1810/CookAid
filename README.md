@@ -59,6 +59,7 @@ cd path/to/CookAid  # Navigate to project directory
 pod install
 ```
 Then open the `.xcworkspace` file instead of the `.xcodeproj` file.
+After that, you can also try opening CookAid/CookAid application in Xcode, and click the ▶️ (Play) button in the top-left corner to build and run the app.
 
 ## App Features
 
