@@ -4,8 +4,11 @@ import Combine
 
 class CollectionsManager: ObservableObject {
     @Published var collections: [RecipeCollections.Collection] = []
+    @Published var updateTrigger = UUID() 
+    
     private let collectionsKey = "userRecipeCollections"
     private let recipeAPIManager: RecipeAPIManager
+    
     init(recipeAPIManager: RecipeAPIManager) {
         self.recipeAPIManager = recipeAPIManager
         loadCollections()
@@ -25,6 +28,12 @@ class CollectionsManager: ObservableObject {
             encoder.dateEncodingStrategy = .iso8601
             let data = try encoder.encode(collections)
             UserDefaults.standard.set(data, forKey: collectionsKey)
+            
+            // Trigger UI updates
+            DispatchQueue.main.async {
+                self.updateTrigger = UUID()
+                self.objectWillChange.send()
+            }
         } catch {
             print("Error saving collections: \(error)")
         }
@@ -45,13 +54,16 @@ class CollectionsManager: ObservableObject {
         }
     }
     
+    // Get a specific collection by ID
+    func getCollection(by id: UUID) -> RecipeCollections.Collection? {
+        return collections.first { $0.id == id }
+    }
+    
     // Create a new collection
     func createCollection(name: String, description: String? = nil) {
         let newCollection = RecipeCollections.Collection(name: name, description: description)
         collections.append(newCollection)
         saveCollections()
-        // Explicitly notify observers of the change
-        objectWillChange.send()
     }
     
     // Add recipe to a specific collection (from RecipeDetail)
@@ -63,8 +75,6 @@ class CollectionsManager: ObservableObject {
             if !collections[index].recipes.contains(where: { $0.originalRecipeId == recipeDetail.id }) {
                 collections[index].recipes.append(collectionRecipe)
                 saveCollections()
-                // Explicitly notify observers of the change
-                objectWillChange.send()
             }
         }
     }
@@ -96,6 +106,7 @@ class CollectionsManager: ObservableObject {
                         if let recipeIndex = self.collections[index].recipes.firstIndex(where: { $0.originalRecipeId == quickRecipe.id }) {
                             // Replace it with the full recipe
                             self.collections[index].recipes[recipeIndex] = fullRecipe
+                            self.saveCollections()
                         }
                     }
                 }
@@ -103,7 +114,6 @@ class CollectionsManager: ObservableObject {
             
             // Save and notify even before details are fetched to show immediate UI feedback
             saveCollections()
-            objectWillChange.send()
         }
     }
     
@@ -135,9 +145,6 @@ class CollectionsManager: ObservableObject {
             // Add the recipe to collection
             collections[index].recipes.append(collectionRecipe)
             
-            // Explicitly trigger UI update
-            objectWillChange.send()
-            
             // Save changes to persistence
             saveCollections()
             
@@ -147,12 +154,20 @@ class CollectionsManager: ObservableObject {
         }
     }
     
+    // Update a recipe
+    func updateRecipe(recipeId: UUID, collectionId: UUID, updatedRecipe: RecipeCollections.Recipe) {
+        if let collectionIndex = collections.firstIndex(where: { $0.id == collectionId }),
+           let recipeIndex = collections[collectionIndex].recipes.firstIndex(where: { $0.id == recipeId }) {
+            
+            collections[collectionIndex].recipes[recipeIndex] = updatedRecipe
+            saveCollections()
+        }
+    }
+    
     func removeRecipeFromCollection(recipeId: UUID, collectionId: UUID) {
         if let collectionIndex = collections.firstIndex(where: { $0.id == collectionId }) {
             // Find and remove the recipe
             collections[collectionIndex].recipes.removeAll { $0.id == recipeId }
-            objectWillChange.send()
-            
             saveCollections()
         }
     }
@@ -161,8 +176,6 @@ class CollectionsManager: ObservableObject {
     func deleteCollection(collectionId: UUID) {
         collections.removeAll { $0.id == collectionId }
         saveCollections()
-        // Explicitly notify observers of the change
-        objectWillChange.send()
     }
     
     // Update a collection
@@ -175,8 +188,14 @@ class CollectionsManager: ObservableObject {
                 collections[index].description = newDescription
             }
             saveCollections()
-            // Explicitly notify observers of the change
-            objectWillChange.send()
+        }
+    }
+    
+    // Force a UI refresh
+    func refreshUI() {
+        DispatchQueue.main.async {
+            self.updateTrigger = UUID()
+            self.objectWillChange.send()
         }
     }
     

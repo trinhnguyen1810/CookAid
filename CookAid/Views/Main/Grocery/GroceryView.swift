@@ -14,64 +14,72 @@ struct GroceryView: View {
     @State private var showActionAlert = false
 
     var body: some View {
-        NavigationView {
-            ZStack {
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 15) {
-                        // Header Section
-                        HStack {
-                            Text("Grocery List")
-                                .font(.custom("Cochin", size: 25))
-                                .fontWeight(.bold)
-                                .foregroundColor(.black)
-                            
-                            Spacer()
-                            
-                            Menu {
-                                Button(action: {
-                                    showClearAllAlert = true
-                                }) {
-                                    Label("Clear All Items", systemImage: "trash")
-                                }
+            NavigationView {
+                ZStack {
+                    ScrollView {
+                        VStack(alignment: .leading, spacing: 15) {
+                            // Header Section
+                            HStack {
+                                Text("Grocery List")
+                                    .font(.custom("Cochin", size: 25))
+                                    .fontWeight(.bold)
+                                    .foregroundColor(.black)
                                 
-                                Button(action: {
-                                    showClearCompletedAlert = true
-                                }) {
-                                    Label("Clear Completed Items", systemImage: "checkmark.circle")
+                                Spacer()
+                                
+                                HStack(spacing: 10) {
+                                    // Menu for Clear options
+                                    Menu {
+                                        Button(action: {
+                                            showClearAllAlert = true
+                                        }) {
+                                            Label("Clear All Items", systemImage: "trash")
+                                        }
+                                        
+                                        Button(action: {
+                                            showClearCompletedAlert = true
+                                        }) {
+                                            Label("Clear Completed Items", systemImage: "checkmark.circle")
+                                        }
+                                    } label: {
+                                        Image(systemName: "trash")
+                                            .foregroundColor(.white)
+                                            .padding(.vertical, 10)
+                                            .padding(.horizontal, 15)
+                                            .background(Color.red)
+                                            .cornerRadius(8)
+                                    }
+                                    
+                                    // Plus Button
+                                    Button(action: {
+                                        showAddGrocery.toggle() // Show the AddGroceryView
+                                    }) {
+                                        HStack {
+                                            Image(systemName: "plus")
+                                                .foregroundColor(.white)
+                                        }
+                                        .padding(.vertical, 10)
+                                        .padding(.horizontal, 15)
+                                        .background(Color.black)
+                                        .cornerRadius(8)
+                                    }
                                 }
-                            } label: {
-                                Image(systemName: "trash")
-                                    .foregroundColor(.white)
-                                    .padding(.vertical, 10)
-                                    .padding(.horizontal, 15)
-                                    .background(Color.red)
-                                    .cornerRadius(8)
+                                .padding(.trailing, 5)
                             }
-                        }
-                        .padding(.horizontal, 20)
-                        .padding(.top, 20)
+                            .padding(.horizontal, 20)
+                            .padding(.top, 20)
 
-                        // Search Bar and Add Button
-                        HStack {
-                            TextField("Search ingredients...", text: $searchText)
-                                .padding(10)
-                                .font(.custom("Cochin", size: 18))
-                                .background(Color.white)
-                                .cornerRadius(8)
-                                .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: 2)
-
-                            Button(action: {
-                                showAddGrocery.toggle() // Show the AddGroceryView
-                            }) {
-                                Image(systemName: "plus")
-                                    .foregroundColor(.white)
+                            // Search Bar
+                            HStack {
+                                TextField("Search ingredients...", text: $searchText)
                                     .padding(10)
-                                    .background(Color.blue)
-                                    .clipShape(Circle())
-                                    .shadow(radius: 2)
+                                    .font(.custom("Cochin", size: 18))
+                                    .background(Color.white)
+                                    .cornerRadius(8)
+                                    .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: 2)
+                                    .padding(.horizontal)
                             }
-                        }
-                        .padding(.horizontal)
+                            .padding(.top, 10)
                         
                         // Empty state
                         if groceryManager.groceryItems.isEmpty {

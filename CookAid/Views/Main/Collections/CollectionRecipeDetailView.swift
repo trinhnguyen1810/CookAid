@@ -13,6 +13,9 @@ struct CollectionRecipeDetailView: View {
     @State private var addedMessage = ""
     @State private var showingAlert = false
     
+    // Add refresh trigger
+    @State private var refreshKey = UUID()
+    
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
@@ -223,14 +226,36 @@ struct CollectionRecipeDetailView: View {
                 }
             }
             .padding(.vertical)
+            .id(refreshKey) // This forces the view to completely rebuild when key changes
         }
         .navigationTitle("Recipe Details")
-        .sheet(isPresented: $showingEditSheet) {
+        .sheet(isPresented: $showingEditSheet, onDismiss: {
+            // Force refresh when editing is done
+            refreshKey = UUID()
+            
+            // Get the updated recipe from the manager
+            if let updatedCollection = collectionsManager.getCollection(by: collectionId),
+               let updatedRecipe = updatedCollection.recipes.first(where: { $0.id == recipe.id }) {
+                // This is a hack to update the recipe variable since it's not @State
+                // We're forcing the entire view to refresh with the refreshKey
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    // Set this to trigger a UI update
+                    refreshKey = UUID()
+                }
+            }
+        }) {
+            // Pass a refresh callback to EditRecipeView
             EditRecipeView(
-                collectionsManager: collectionsManager,
                 recipe: recipe,
-                collectionId: collectionId
+                collectionId: collectionId,
+                onSave: {
+                    // Trigger UI refresh when save happens
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                        refreshKey = UUID()
+                    }
+                }
             )
+            .environmentObject(collectionsManager)
         }
         .sheet(isPresented: $showCategorySelection, onDismiss: {
             // Reset the selectedIngredient when sheet is dismissed
@@ -282,6 +307,10 @@ struct CollectionRecipeDetailView: View {
         }
         .alert(addedMessage, isPresented: $showingAlert) {
             Button("OK", role: .cancel) { }
+        }
+        .onAppear {
+            // Force refresh when view appears
+            refreshKey = UUID()
         }
     }
     

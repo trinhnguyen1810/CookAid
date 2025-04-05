@@ -6,7 +6,7 @@ struct EditRecipeView: View {
     @State private var recipe: CollectionRecipe
     @State private var editableIngredients: [EditableRecipeIngredient] = []
     @State private var currentImage: UIImage?
-    var collectionId: UUID
+    let collectionId: UUID
     @Environment(\.presentationMode) var presentationMode
     @State private var showDeleteConfirmation = false
     
@@ -17,9 +17,13 @@ struct EditRecipeView: View {
     @State private var showingSourceTypeActionSheet = false
     @State private var imageChanged = false
     
-    init(collectionsManager: CollectionsManager, recipe: CollectionRecipe, collectionId: UUID) {
+    // Add notification trigger for parent view
+    var onSave: (() -> Void)?
+    
+    init(recipe: CollectionRecipe, collectionId: UUID, onSave: (() -> Void)? = nil) {
         self._recipe = State(initialValue: recipe)
         self.collectionId = collectionId
+        self.onSave = onSave
         self._editableIngredients = State(initialValue: recipe.ingredients.map { EditableRecipeIngredient(from: $0) })
     }
     
@@ -182,12 +186,6 @@ struct EditRecipeView: View {
         }
     }
     
-    private func loadExistingImage() {
-        if let imagePath = recipe.image, let uiImage = UIImage(contentsOfFile: imagePath) {
-            currentImage = uiImage
-        }
-    }
-    
     private func saveRecipe() {
         // Update the recipe with edited ingredients
         var updatedRecipe = recipe
@@ -206,24 +204,94 @@ struct EditRecipeView: View {
             }
         }
         
-        // Find the collection
-        if let index = collectionsManager.collections.firstIndex(where: { $0.id == collectionId }) {
-            // Find the recipe in the collection
-            if let recipeIndex = collectionsManager.collections[index].recipes.firstIndex(where: { $0.id == recipe.id }) {
-                // Update the recipe
-                collectionsManager.collections[index].recipes[recipeIndex] = updatedRecipe
-                // Save changes
-                collectionsManager.saveCollections()
+        // Direct collection update for immediate effect
+        if let index = collectionsManager.collections.firstIndex(where: { $0.id == collectionId }),
+           let recipeIndex = collectionsManager.collections[index].recipes.firstIndex(where: { $0.id == recipe.id }) {
+            
+            // Update recipe directly in the collection
+            collectionsManager.collections[index].recipes[recipeIndex] = updatedRecipe
+            
+            // Save to persistence
+            collectionsManager.saveCollections()
+            
+            // Force UI refresh with explicit notification
+            DispatchQueue.main.async {
+                // Notify observers
                 collectionsManager.objectWillChange.send()
-                // Dismiss the view
-                presentationMode.wrappedValue.dismiss()
+                
+                // Call the onSave callback if provided
+                onSave?()
+                
+                // Create a small delay before dismissing to allow UI to update
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    presentationMode.wrappedValue.dismiss()
+                }
             }
+        } else {
+            // Fallback to using the CollectionsManager method
+            collectionsManager.updateRecipe(
+                recipeId: recipe.id,
+                collectionId: collectionId,
+                updatedRecipe: updatedRecipe
+            )
+            
+            // Call the onSave callback if provided
+            onSave?()
+            
+            // Dismiss the view
+            presentationMode.wrappedValue.dismiss()
         }
     }
     
     private func deleteRecipe() {
-        collectionsManager.removeRecipeFromCollection(recipeId: recipe.id, collectionId: collectionId)
-        presentationMode.wrappedValue.dismiss()
+        // Direct collection update for immediate effect
+        if let index = collectionsManager.collections.firstIndex(where: { $0.id == collectionId }) {
+            // Remove recipe directly from collection
+            collectionsManager.collections[index].recipes.removeAll { $0.id == recipe.id }
+            
+            // Save to persistence
+            collectionsManager.saveCollections()
+            
+            // Force UI refresh with explicit notification
+            DispatchQueue.main.async {
+                // Notify observers
+                collectionsManager.objectWillChange.send()
+                
+                // Call the onSave callback if provided
+                onSave?()
+                
+                // Create a small delay before dismissing to allow UI to update
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    presentationMode.wrappedValue.dismiss()
+                }
+            }
+        } else {
+            // Fallback to using the CollectionsManager method
+            collectionsManager.removeRecipeFromCollection(
+                recipeId: recipe.id,
+                collectionId: collectionId
+            )
+            
+            // Call the onSave callback if provided
+            onSave?()
+            
+            // Dismiss the view
+            presentationMode.wrappedValue.dismiss()
+        }
+    }
+    
+    private func loadExistingImage() {
+        if let imagePath = recipe.image {
+            // Check if the image path is a URL
+            if imagePath.hasPrefix("http") || imagePath.hasPrefix("https") {
+                // Load remote image (not implemented here)
+            } else {
+                // Load local image
+                if let uiImage = UIImage(contentsOfFile: imagePath) {
+                    currentImage = uiImage
+                }
+            }
+        }
     }
     
     private func saveImage(_ image: UIImage) -> String? {
@@ -246,4 +314,3 @@ struct EditRecipeView: View {
         return paths[0]
     }
 }
-
