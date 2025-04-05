@@ -25,9 +25,9 @@ class RecipeAPIManager: ObservableObject, NetworkErrorHandler {
         
         urlComponents.queryItems = [
             URLQueryItem(name: "ingredients", value: ingredientsString),
-            URLQueryItem(name: "number", value: "1"),
+            URLQueryItem(name: "number", value: "6"),
             URLQueryItem(name: "ignorePantry", value: "true"),
-            URLQueryItem(name: "ranking", value: "1")
+            URLQueryItem(name: "ranking", value: "2")
         ]
         
         guard let url = urlComponents.url else {
@@ -157,8 +157,8 @@ class RecipeAPIManager: ObservableObject, NetworkErrorHandler {
         urlComponents.queryItems = [
             URLQueryItem(name: "includeIngredients", value: ingredientsString),
             URLQueryItem(name: "maxReadyTime", value: "30"),
-            URLQueryItem(name: "number", value: "1"),
-            URLQueryItem(name: "ranking", value: "2")
+            URLQueryItem(name: "number", value: "6"),
+            URLQueryItem(name: "ranking", value: "1")
         ]
         
         // Add optional diet and intolerances
@@ -248,7 +248,7 @@ class RecipeAPIManager: ObservableObject, NetworkErrorHandler {
         
         var queryItems: [URLQueryItem] = [
             URLQueryItem(name: "query", value: query),
-            URLQueryItem(name: "number", value: "1"),
+            URLQueryItem(name: "number", value: "10"),
             URLQueryItem(name: "addRecipeInformation", value: "true")
         ]
         
