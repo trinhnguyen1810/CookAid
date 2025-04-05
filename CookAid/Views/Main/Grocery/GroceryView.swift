@@ -40,9 +40,12 @@ struct GroceryView: View {
                                     Label("Clear Completed Items", systemImage: "checkmark.circle")
                                 }
                             } label: {
-                                Image(systemName: "ellipsis.circle")
-                                    .font(.system(size: 20))
-                                    .foregroundColor(.black)
+                                Image(systemName: "trash")
+                                    .foregroundColor(.white)
+                                    .padding(.vertical, 10)
+                                    .padding(.horizontal, 15)
+                                    .background(Color.red)
+                                    .cornerRadius(8)
                             }
                         }
                         .padding(.horizontal, 20)
